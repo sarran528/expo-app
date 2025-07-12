@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
-import { GalleryVertical as Gallery, Camera, FileText, Settings } from 'lucide-react-native';
+import { GalleryVertical as Gallery, Camera, FileText } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
 export default function TabLayout() {

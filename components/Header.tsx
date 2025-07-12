@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, Settings, Sun, Moon } from 'lucide-react-native';
+import { Menu, Settings, Sun, Moon, X, User, Bell, Shield, HelpCircle } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 
@@ -13,53 +13,181 @@ interface HeaderProps {
 export function Header({ title, showMenu = true }: HeaderProps) {
   const { colors, fontSize, isDarkMode, toggleTheme } = useTheme();
   const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const slideAnim = React.useRef(new Animated.Value(-300)).current;
 
-  const handleSettingsPress = () => {
-    // In a real app, navigate to settings screen
-    // router.push('/settings');
+  const handleMenuPress = () => {
+    setIsMenuOpen(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   };
 
-  return (
-    <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-      <View style={styles.headerContent}>
-        <Text 
-          style={[styles.title, { color: colors.text, fontSize: fontSize.xlarge }]}
-          accessible={true}
-          accessibilityRole="header"
-          accessibilityLabel={`${title} screen`}
-        >
+  const closeMenu = () => {
+    Animated.timing(slideAnim, {
+      toValue: -300,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsMenuOpen(false);
+    });
+  };
+
+  const handleSettingsPress = () => {
+    closeMenu();
+    router.push('/settings');
+  };
+
+  const handleProfilePress = () => {
+    closeMenu();
+    // Navigate to profile screen when available
+  };
+
+  const handleNotificationsPress = () => {
+    closeMenu();
+    // Navigate to notifications screen when available
+  };
+
+  const handlePrivacyPress = () => {
+    closeMenu();
+    // Navigate to privacy screen when available
+  };
+
+  const handleHelpPress = () => {
+    closeMenu();
+    // Navigate to help screen when available
+  };
+
+  const renderMenuItem = (
+    icon: React.ReactNode,
+    title: string,
+    onPress: () => void
+  ) => (
+    <TouchableOpacity
+      style={[styles.menuItem, { borderBottomColor: colors.border }]}
+      onPress={onPress}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+    >
+      <View style={styles.menuItemContent}>
+        <View style={styles.menuItemIcon}>
+          {icon}
+        </View>
+        <Text style={[styles.menuItemText, { color: colors.text, fontSize: fontSize.medium }]}>
           {title}
         </Text>
-        
-        {showMenu && (
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={toggleTheme}
-              style={[styles.headerButton, { backgroundColor: colors.background }]}
-              accessible={true}
-              accessibilityLabel={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
-              accessibilityRole="button"
-            >
-              {isDarkMode ? (
-                <Sun size={24} color={colors.text} strokeWidth={2.5} />
-              ) : (
-                <Moon size={24} color={colors.text} strokeWidth={2.5} />
-              )}
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={handleSettingsPress}
-              style={[styles.headerButton, { backgroundColor: colors.background }]}
-              accessible={true}
-              accessibilityLabel="Open settings"
-              accessibilityRole="button"
-            >
-              <Settings size={24} color={colors.text} strokeWidth={2.5} />
-            </TouchableOpacity>
-          </View>
-        )}
       </View>
-    </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View style={styles.headerContent}>
+          <Text 
+            style={[styles.title, { color: colors.text, fontSize: fontSize.xlarge }]}
+            accessible={true}
+            accessibilityRole="header"
+            accessibilityLabel={`${title} screen`}
+          >
+            {title}
+          </Text>
+          
+          {showMenu && (
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={toggleTheme}
+                style={[styles.headerButton, { backgroundColor: colors.background }]}
+                accessible={true}
+                accessibilityLabel={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
+                accessibilityRole="button"
+              >
+                {isDarkMode ? (
+                  <Sun size={24} color={colors.text} strokeWidth={2.5} />
+                ) : (
+                  <Moon size={24} color={colors.text} strokeWidth={2.5} />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={handleMenuPress}
+                style={[styles.headerButton, { backgroundColor: colors.background }]}
+                accessible={true}
+                accessibilityLabel="Open menu"
+                accessibilityRole="button"
+              >
+                <Menu size={24} color={colors.text} strokeWidth={2.5} />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Burger Menu Modal */}
+      <Modal
+        visible={isMenuOpen}
+        transparent={true}
+        animationType="none"
+        onRequestClose={closeMenu}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeMenu}
+        >
+          <Animated.View
+            style={[
+              styles.menuContainer,
+              {
+                backgroundColor: colors.surface,
+                transform: [{ translateX: slideAnim }],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={closeMenu}
+              accessible={true}
+              accessibilityLabel="Close menu"
+              accessibilityRole="button"
+            >
+              <X size={24} color={colors.text} strokeWidth={2.5} />
+            </TouchableOpacity>
+
+            <View style={styles.menuContent}>
+              {renderMenuItem(
+                <User size={20} color={colors.text} strokeWidth={2.5} />,
+                'Profile',
+                handleProfilePress
+              )}
+              {renderMenuItem(
+                <Settings size={20} color={colors.text} strokeWidth={2.5} />,
+                'Settings',
+                handleSettingsPress
+              )}
+              {renderMenuItem(
+                <Bell size={20} color={colors.text} strokeWidth={2.5} />,
+                'Notifications',
+                handleNotificationsPress
+              )}
+              {renderMenuItem(
+                <Shield size={20} color={colors.text} strokeWidth={2.5} />,
+                'Privacy & Security',
+                handlePrivacyPress
+              )}
+              {renderMenuItem(
+                <HelpCircle size={20} color={colors.text} strokeWidth={2.5} />,
+                'Help & Support',
+                handleHelpPress
+              )}
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
+    </>
   );
 }
 
@@ -89,5 +217,58 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 300,
+    height: '100%',
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 2,
+      height: 0,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    zIndex: 1,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContent: {
+    marginTop: 100,
+    paddingHorizontal: 16,
+  },
+  menuItem: {
+    borderBottomWidth: 1,
+    paddingVertical: 16,
+  },
+  menuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemIcon: {
+    width: 40,
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  menuItemText: {
+    fontWeight: '500',
+    flex: 1,
   },
 });

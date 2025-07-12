@@ -115,28 +115,28 @@ export function ImageModal({ image, onClose, onOCR, onTTS }: ImageModalProps) {
             <View style={styles.actionRow}>
               <AccessibleButton
                 onPress={handleOCRPress}
-                style={[styles.actionButton, { backgroundColor: colors.primary }]}
+                style={[styles.actionButton, { backgroundColor: colors.primary }]as any}
                 accessibilityLabel="Extract text from image using OCR"
                 icon={<Eye size={24} color={colors.onPrimary} strokeWidth={2.5} />}
               />
               
               <AccessibleButton
                 onPress={handleShare}
-                style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}
+                style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
                 accessibilityLabel="Share image"
                 icon={<Share size={24} color={colors.text} strokeWidth={2.5} />}
               />
               
               <AccessibleButton
                 onPress={handleDownload}
-                style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}
+                style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
                 accessibilityLabel="Download image"
                 icon={<Download size={24} color={colors.text} strokeWidth={2.5} />}
               />
               
               <AccessibleButton
                 onPress={handleDelete}
-                style={[styles.actionButton, { backgroundColor: colors.error }]}
+                style={[styles.actionButton, { backgroundColor: colors.error }]as any}
                 accessibilityLabel="Delete image"
                 icon={<Trash2 size={24} color={colors.onError} strokeWidth={2.5} />}
               />
@@ -151,7 +151,7 @@ export function ImageModal({ image, onClose, onOCR, onTTS }: ImageModalProps) {
                 </Text>
                 <AccessibleButton
                   onPress={() => onTTS(image.ocrText!)}
-                  style={[styles.ttsButton, { backgroundColor: colors.primary }]}
+                  style={[styles.ttsButton, { backgroundColor: colors.primary }]as any}
                   accessibilityLabel="Read extracted text aloud"
                   icon={<Volume2 size={20} color={colors.onPrimary} strokeWidth={2.5} />}
                 />
