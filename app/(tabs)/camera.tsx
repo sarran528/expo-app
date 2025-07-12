@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Alert,
   StyleSheet,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
@@ -19,13 +20,17 @@ import { OCRService } from '@/services/OCRService';
 import { TTSService } from '@/services/TTSService';
 import { LoadingModal } from '@/components/LoadingModal';
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 export default function CameraScreen() {
   const { colors, fontSize } = useTheme();
   const [facing, setFacing] = useState<CameraType>('back');
   const [flash, setFlash] = useState<FlashMode>('off');
   const [permission, requestPermission] = useCameraPermissions();
+  const [mediaPermission, setMediaPermission] = useState<MediaLibrary.PermissionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
+  const [isCameraReady, setIsCameraReady] = useState(false);
   const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
@@ -33,43 +38,71 @@ export default function CameraScreen() {
   }, []);
 
   const requestPermissions = async () => {
-    const cameraPermission = await requestPermission();
-    const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
-    
-    if (!cameraPermission?.granted || mediaLibraryPermission.status !== 'granted') {
-      Alert.alert(
-        'Permissions Required',
-        'Camera and media library permissions are needed to use this feature'
-      );
+    try {
+      const cameraPermission = await requestPermission();
+      const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
+      
+      setMediaPermission(mediaLibraryPermission.status);
+      
+      if (!cameraPermission?.granted || mediaLibraryPermission.status !== 'granted') {
+        Alert.alert(
+          'Permissions Required',
+          'Camera and media library permissions are needed to use this feature. Please grant permissions in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => {
+              // This would typically open device settings
+              console.log('Should open device settings');
+            }}
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Permission request error:', error);
     }
   };
 
-  const toggleCameraFacing = () => {
+  const toggleCameraFacing = useCallback(() => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
-  };
+  }, []);
 
-  const toggleFlash = () => {
+  const toggleFlash = useCallback(() => {
     setFlash(current => (current === 'off' ? 'on' : 'off'));
-  };
+  }, []);
+
+  const onCameraReady = useCallback(() => {
+    setIsCameraReady(true);
+  }, []);
 
   const takePicture = async () => {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || !isCameraReady) {
+      Alert.alert('Camera Not Ready', 'Please wait for the camera to initialize');
+      return;
+    }
 
     try {
       setIsLoading(true);
       setLoadingText('Capturing image...');
 
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
+        quality: 0.9,
         base64: false,
+        skipProcessing: false,
+        exif: false,
       });
 
-      if (photo) {
+      if (photo && photo.uri) {
+        setLoadingText('Saving to gallery...');
+        
+        // Save to media library
         await MediaLibrary.saveToLibraryAsync(photo.uri);
+        
+        setLoadingText('Processing...');
         await processImageForOCR(photo.uri);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to take picture');
+      console.error('Take picture error:', error);
+      Alert.alert('Error', 'Failed to take picture. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -79,15 +112,17 @@ export default function CameraScreen() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
+        quality: 0.9,
         allowsEditing: true,
+        aspect: [4, 3],
       });
 
       if (!result.canceled && result.assets[0]) {
         await processImageForOCR(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick image');
+      console.error('Pick image error:', error);
+      Alert.alert('Error', 'Failed to pick image from gallery');
     }
   };
 
@@ -128,6 +163,7 @@ export default function CameraScreen() {
                 Alert.alert('No Text Found', 'No readable text was detected in this image');
               }
             } catch (error) {
+              console.error('OCR error:', error);
               Alert.alert('OCR Error', 'Failed to extract text from image');
             } finally {
               setIsLoading(false);
@@ -181,6 +217,7 @@ export default function CameraScreen() {
           style={styles.camera}
           facing={facing}
           flash={flash}
+          onCameraReady={onCameraReady}
           accessible={false}
         />
         
@@ -210,7 +247,13 @@ export default function CameraScreen() {
             
             <AccessibleButton
               onPress={takePicture}
-              style={[styles.captureButton, { backgroundColor: colors.primary }] as any}
+              disabled={!isCameraReady || isLoading}
+              style={[
+                styles.captureButton, 
+                { 
+                  backgroundColor: isCameraReady && !isLoading ? colors.primary : colors.textSecondary 
+                }
+              ] as any}
               accessibilityLabel="Capture photo"
             >
               <CameraIcon size={32} color={colors.onPrimary} strokeWidth={2.5} />
@@ -261,6 +304,8 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+    width: screenWidth,
+    height: screenHeight * 0.7,
   },
   controlsOverlay: {
     position: 'absolute',
@@ -274,11 +319,13 @@ const styles = StyleSheet.create({
   topControls: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    marginTop: 20,
   },
   bottomControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 40,
   },
   controlButton: {
     width: 56,
@@ -286,6 +333,14 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   captureButton: {
     width: 72,
@@ -293,5 +348,13 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });
