@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, Settings, Sun, Moon, X, User, Bell, Shield, HelpCircle } from 'lucide-react-native';
+import { Menu, Settings, X } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 
@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 export function Header({ title, showMenu = true }: HeaderProps) {
-  const { colors, fontSize, isDarkMode, toggleTheme } = useTheme();
+  const { colors, fontSize } = useTheme();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(-300)).current;
@@ -40,25 +40,7 @@ export function Header({ title, showMenu = true }: HeaderProps) {
     router.push('/settings');
   };
 
-  const handleProfilePress = () => {
-    closeMenu();
-    // Navigate to profile screen when available
-  };
 
-  const handleNotificationsPress = () => {
-    closeMenu();
-    // Navigate to notifications screen when available
-  };
-
-  const handlePrivacyPress = () => {
-    closeMenu();
-    // Navigate to privacy screen when available
-  };
-
-  const handleHelpPress = () => {
-    closeMenu();
-    // Navigate to help screen when available
-  };
 
   const renderMenuItem = (
     icon: React.ReactNode,
@@ -98,20 +80,6 @@ export function Header({ title, showMenu = true }: HeaderProps) {
           
           {showMenu && (
             <View style={styles.headerActions}>
-              <TouchableOpacity
-                onPress={toggleTheme}
-                style={[styles.headerButton, { backgroundColor: colors.background }]}
-                accessible={true}
-                accessibilityLabel={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
-                accessibilityRole="button"
-              >
-                {isDarkMode ? (
-                  <Sun size={24} color={colors.text} strokeWidth={2.5} />
-                ) : (
-                  <Moon size={24} color={colors.text} strokeWidth={2.5} />
-                )}
-              </TouchableOpacity>
-              
               <TouchableOpacity
                 onPress={handleMenuPress}
                 style={[styles.headerButton, { backgroundColor: colors.background }]}
@@ -159,29 +127,9 @@ export function Header({ title, showMenu = true }: HeaderProps) {
 
             <View style={styles.menuContent}>
               {renderMenuItem(
-                <User size={20} color={colors.text} strokeWidth={2.5} />,
-                'Profile',
-                handleProfilePress
-              )}
-              {renderMenuItem(
                 <Settings size={20} color={colors.text} strokeWidth={2.5} />,
                 'Settings',
                 handleSettingsPress
-              )}
-              {renderMenuItem(
-                <Bell size={20} color={colors.text} strokeWidth={2.5} />,
-                'Notifications',
-                handleNotificationsPress
-              )}
-              {renderMenuItem(
-                <Shield size={20} color={colors.text} strokeWidth={2.5} />,
-                'Privacy & Security',
-                handlePrivacyPress
-              )}
-              {renderMenuItem(
-                <HelpCircle size={20} color={colors.text} strokeWidth={2.5} />,
-                'Help & Support',
-                handleHelpPress
               )}
             </View>
           </Animated.View>
