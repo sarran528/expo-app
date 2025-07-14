@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
 import { OCRScanner } from '../../components/OCRScanner';
 import { useTheme } from '@/hooks/useTheme';
 import { AccessibleButton } from '../../components/AccessibleButton';
 import { useOCRScanner } from './_layout';
+import { useFocusEffect } from 'expo-router';
 
 export default function CameraTabScreen() {
   const [visible, setVisible] = useState(false); // Default to placeholder, not scanner
@@ -18,6 +19,16 @@ export default function CameraTabScreen() {
     setVisible(false);
     setScannerOpen(false);
   };
+
+  // Ensure scannerOpen is reset when leaving the tab or unmounting
+  useFocusEffect(
+    React.useCallback(() => {
+      // On focus: do nothing
+      return () => {
+        setScannerOpen(false);
+      };
+    }, [setScannerOpen])
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 

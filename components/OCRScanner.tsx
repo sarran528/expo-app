@@ -16,6 +16,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { AccessibleButton } from './AccessibleButton';
 import { OCRService, extractTextFromImage } from '@/services/OCRService';
 import { useRouter } from 'expo-router';
+import { useOCRScanner } from '../app/(tabs)/_layout';
 
 interface OCRScannerProps {
   onTextExtracted: (text: string, imageUri: string) => void;
@@ -32,6 +33,7 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
   const [processingStatus, setProcessingStatus] = useState('');
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
+  const { setScannerOpen } = useOCRScanner();
 
   if (!visible) return null;
 
@@ -98,6 +100,7 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
 
       if (extractedText.trim()) {
         onTextExtracted(extractedText, manipResult.uri);
+        setScannerOpen(false); // Ensure header/tab bar restored before navigation
         router.push({ pathname: '/text-reader', params: { text: extractedText } });
       } else {
         Alert.alert('No Text Found', 'No readable text was detected in this image. Please try with a clearer image.');
