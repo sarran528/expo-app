@@ -145,23 +145,7 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.text, fontSize: fontSize.large }]}>
-          OCR Scanner
-        </Text>
-        <TouchableOpacity
-          onPress={onClose}
-          style={[styles.closeButton, { backgroundColor: colors.background }]}
-          accessible={true}
-          accessibilityLabel="Close OCR scanner"
-          accessibilityRole="button"
-        >
-          <X size={24} color={colors.text} strokeWidth={2.5} />
-        </TouchableOpacity>
-      </View>
-
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* Main Content */}
       <View style={styles.content}>
         {capturedImage ? (
@@ -213,11 +197,9 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
               flash={flash}
               accessible={false}
             />
-            
-            <View style={[styles.cameraOverlay, { backgroundColor: colors.overlay }]}>
-              {/* Top Controls: Flash toggle in top right */}
-              <View style={styles.topControlsRow}>
-                <View style={{ flex: 1 }} />
+            <View style={[styles.cameraOverlay, { backgroundColor: colors.overlay }]}> 
+              {/* Top Controls: Flash left, X right */}
+              <View style={styles.topControlsRowBetween}>
                 <AccessibleButton
                   onPress={toggleFlash}
                   style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
@@ -227,6 +209,12 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
                   ) : (
                     <ZapOff size={24} color={colors.textSecondary} strokeWidth={2.5} />
                   )}
+                />
+                <AccessibleButton
+                  onPress={onClose}
+                  style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
+                  accessibilityLabel="Close OCR scanner"
+                  icon={<X size={24} color={colors.text} strokeWidth={2.5} />}
                 />
               </View>
               {/* Bottom Controls: Evenly spaced */}
@@ -255,8 +243,6 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
           </View>
         )}
       </View>
-      {/* Instructions and rest as before */}
-      {/* Remove instructional text below camera view */}
     </View>
   );
 }
@@ -386,5 +372,12 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     marginRight: 8,
     gap: 12,
+  },
+  topControlsRowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    marginHorizontal: 8,
   },
 });
