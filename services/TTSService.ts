@@ -6,6 +6,8 @@ class TTSServiceClass {
   private isPlaying: boolean = false;
   private speechRate: number = 0.75;
   private speechPitch: number = 1.0;
+  private boundaryCallback: ((wordIndex: number) => void) | null = null;
+  private words: string[] = [];
 
   async speak(text: string, options?: {
     rate?: number;
@@ -13,9 +15,7 @@ class TTSServiceClass {
     voice?: string;
   }): Promise<void> {
     try {
-      // Stop any currently playing speech
       await this.stop();
-
       const speechOptions: Speech.SpeechOptions = {
         language: 'en-US',
         pitch: options?.pitch || this.speechPitch,
@@ -37,19 +37,79 @@ class TTSServiceClass {
           this.currentUtteranceId = null;
         },
       };
-
-      // Set voice if specified
       if (options?.voice) {
         speechOptions.voice = options.voice;
       }
-
-      // Start speaking
       Speech.speak(text, speechOptions);
       this.isPlaying = true;
     } catch (error) {
       console.error('TTS Speak Error:', error);
       throw error;
     }
+  }
+
+  /**
+   * Speak with word boundary highlighting support.
+   * @param text The text to speak.
+   * @param options TTS options.
+   * @param onBoundary Callback(wordIndex) when a word boundary is reached.
+   */
+  async speakWithWordBoundary(text: string, options: {
+    rate?: number;
+    pitch?: number;
+    voice?: string;
+  } = {}, onBoundary?: (wordIndex: number) => void) {
+    await this.stop();
+    this.words = text.split(/(\s+)/);
+    this.boundaryCallback = onBoundary || null;
+    let wordIdx = 0;
+    const speechOptions: Speech.SpeechOptions = {
+      language: 'en-US',
+      pitch: options?.pitch || this.speechPitch,
+      rate: options?.rate || this.speechRate,
+      onStart: () => {
+        this.isPlaying = true;
+        if (this.boundaryCallback) this.boundaryCallback(0);
+      },
+      onDone: () => {
+        this.isPlaying = false;
+        this.currentUtteranceId = null;
+        if (this.boundaryCallback) this.boundaryCallback(-1);
+      },
+      onStopped: () => {
+        this.isPlaying = false;
+        this.currentUtteranceId = null;
+        if (this.boundaryCallback) this.boundaryCallback(-1);
+      },
+      onError: (error) => {
+        console.error('TTS Error:', error);
+        this.isPlaying = false;
+        this.currentUtteranceId = null;
+        if (this.boundaryCallback) this.boundaryCallback(-1);
+      },
+    };
+    if (options?.voice) {
+      speechOptions.voice = options.voice;
+    }
+    // Use onBoundary if available (iOS/Android)
+    if (typeof Speech.speak === 'function' && Platform.OS !== 'web') {
+      // @ts-ignore: onBoundary is not in types but is supported
+      speechOptions.onBoundary = (event: any) => {
+        if (event?.charIndex != null) {
+          // Find which word this charIndex is in
+          let acc = 0;
+          for (let i = 0; i < this.words.length; i++) {
+            acc += this.words[i].length;
+            if (event.charIndex < acc) {
+              if (this.boundaryCallback) this.boundaryCallback(i);
+              break;
+            }
+          }
+        }
+      };
+    }
+    Speech.speak(text, speechOptions);
+    this.isPlaying = true;
   }
 
   async stop(): Promise<void> {
@@ -68,7 +128,6 @@ class TTSServiceClass {
   async pause(): Promise<void> {
     try {
       if (this.isPlaying && Platform.OS === 'ios') {
-        // Note: Pause/resume is only available on iOS
         Speech.pause();
       }
     } catch (error) {
@@ -80,7 +139,6 @@ class TTSServiceClass {
   async resume(): Promise<void> {
     try {
       if (Platform.OS === 'ios') {
-        // Note: Pause/resume is only available on iOS
         Speech.resume();
       }
     } catch (error) {
@@ -90,12 +148,10 @@ class TTSServiceClass {
   }
 
   setSpeechRate(rate: number): void {
-    // Rate should be between 0.0 and 1.0
     this.speechRate = Math.max(0.1, Math.min(1.0, rate));
   }
 
   setSpeechPitch(pitch: number): void {
-    // Pitch should be between 0.5 and 2.0
     this.speechPitch = Math.max(0.5, Math.min(2.0, pitch));
   }
 
@@ -121,7 +177,6 @@ class TTSServiceClass {
     }
   }
 
-  // Utility method to check if speech is available
   async isSpeechAvailable(): Promise<boolean> {
     try {
       return await Speech.isSpeakingAsync();

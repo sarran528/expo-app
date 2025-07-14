@@ -1,27 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { TTSService } from '../services/TTSService';
+import { useTheme } from '@/hooks/useTheme';
+import { AccessibleButton } from './AccessibleButton';
 
 interface TextReaderPageProps {
   text: string;
   onBack?: () => void;
 }
 
-const WORD_DELAY = 350; // ms per word (approximate, can be tuned)
-
 const TextReaderPage: React.FC<TextReaderPageProps> = ({ text, onBack }) => {
+  const { colors, fontSize } = useTheme();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentWordIdx, setCurrentWordIdx] = useState<number>(-1);
   const words = text.split(/(\s+)/); // keep spaces for accurate highlighting
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastWordIdxRef = useRef<number>(-1);
 
   // Reset state when text changes or page is mounted
   useEffect(() => {
     setIsPlaying(false);
     setIsPaused(false);
     setCurrentWordIdx(-1);
-    clearTimer();
+    lastWordIdxRef.current = -1;
     TTSService.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
@@ -37,76 +38,57 @@ const TextReaderPage: React.FC<TextReaderPageProps> = ({ text, onBack }) => {
     setIsPlaying(true);
     setIsPaused(false);
     setCurrentWordIdx(0);
-    TTSService.speak(text);
-    startHighlighting();
+    lastWordIdxRef.current = 0;
+    await TTSService.speakWithWordBoundary(text, {}, (wordIdx) => {
+      setCurrentWordIdx(wordIdx);
+      lastWordIdxRef.current = wordIdx;
+      if (wordIdx === -1) {
+        setIsPlaying(false);
+        setIsPaused(false);
+      }
+    });
   };
 
-  const pause = () => {
+  const pause = async () => {
     setIsPaused(true);
     setIsPlaying(false);
-    TTSService.pause();
-    clearTimer();
+    await TTSService.pause();
   };
 
-  const resume = () => {
+  const resume = async () => {
     setIsPaused(false);
     setIsPlaying(true);
-    TTSService.resume();
-    startHighlighting(currentWordIdx);
+    await TTSService.resume();
+    // No need to restart highlight, onBoundary will continue
   };
 
-  const stop = () => {
+  const stop = async () => {
     setIsPlaying(false);
     setIsPaused(false);
     setCurrentWordIdx(-1);
-    TTSService.stop();
-    clearTimer();
+    lastWordIdxRef.current = -1;
+    await TTSService.stop();
   };
-
-  const startHighlighting = (startIdx = 0) => {
-    clearTimer();
-    let idx = startIdx;
-    timerRef.current = setInterval(() => {
-      setCurrentWordIdx((prev) => {
-        if (prev + 1 >= words.length) {
-          clearTimer();
-          return prev;
-        }
-        return prev + 1;
-      });
-      idx++;
-      if (idx >= words.length) {
-        clearTimer();
-      }
-    }, WORD_DELAY);
-  };
-
-  const clearTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-
-  // When playback stops, reset highlight
-  useEffect(() => {
-    if (!isPlaying && !isPaused) {
-      setCurrentWordIdx(-1);
-      clearTimer();
-    }
-  }, [isPlaying, isPaused]);
 
   return (
-    <View style={styles.container}>
-      {onBack && <Button title="Back" onPress={onBack} />}
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      {onBack && (
+        <AccessibleButton
+          title="Back"
+          onPress={onBack}
+          style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any}
+          textStyle={{ color: colors.text, fontSize: fontSize.medium }}
+          accessibilityLabel="Go back"
+        />
+      )}
       <ScrollView style={styles.textContainer}>
-        <Text style={styles.text}>
+        <Text style={[styles.text, { color: colors.text, fontSize: fontSize.large }]}> 
           {words.map((word, idx) => (
             <Text
               key={idx}
               style={
                 idx === currentWordIdx
-                  ? styles.highlightedWord
+                  ? [styles.highlightedWord, { backgroundColor: colors.primary, color: colors.onPrimary }]
                   : styles.normalWord
               }
             >
@@ -117,16 +99,40 @@ const TextReaderPage: React.FC<TextReaderPageProps> = ({ text, onBack }) => {
       </ScrollView>
       <View style={styles.controls}>
         {!isPlaying && !isPaused && (
-          <Button title="Play" onPress={play} />
+          <AccessibleButton
+            title="Play"
+            onPress={play}
+            style={[styles.controlButton, { backgroundColor: colors.primary }] as any}
+            textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
+            accessibilityLabel="Play text to speech"
+          />
         )}
         {isPlaying && (
-          <Button title="Pause" onPress={pause} />
+          <AccessibleButton
+            title="Pause"
+            onPress={pause}
+            style={[styles.controlButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any}
+            textStyle={{ color: colors.text, fontSize: fontSize.large }}
+            accessibilityLabel="Pause text to speech"
+          />
         )}
         {isPaused && (
-          <Button title="Resume" onPress={resume} />
+          <AccessibleButton
+            title="Resume"
+            onPress={resume}
+            style={[styles.controlButton, { backgroundColor: colors.primary }] as any}
+            textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
+            accessibilityLabel="Resume text to speech"
+          />
         )}
         {(isPlaying || isPaused) && (
-          <Button title="Stop" onPress={stop} />
+          <AccessibleButton
+            title="Stop"
+            onPress={stop}
+            style={[styles.controlButton, { backgroundColor: colors.error }] as any}
+            textStyle={{ color: colors.onError, fontSize: fontSize.large }}
+            accessibilityLabel="Stop text to speech"
+          />
         )}
       </View>
     </View>
@@ -137,7 +143,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
   },
   textContainer: {
     flex: 1,
@@ -149,9 +154,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   highlightedWord: {
-    backgroundColor: '#ffe066',
-    color: '#222',
     fontWeight: 'bold',
+    borderRadius: 4,
+    paddingHorizontal: 2,
   },
   normalWord: {
     color: '#222',
@@ -160,6 +165,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 10,
+    gap: 12,
+  },
+  controlButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginHorizontal: 4,
+  },
+  backButton: {
+    marginBottom: 16,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 20,
   },
 });
 
