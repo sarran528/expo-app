@@ -39,14 +39,14 @@ export default function CameraScreen() {
 
   const requestPermissions = async () => {
     try {
-      const cameraPermission = await requestPermission();
-      const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
+    const cameraPermission = await requestPermission();
+    const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
       
       setMediaPermission(mediaLibraryPermission.status);
-      
-      if (!cameraPermission?.granted || mediaLibraryPermission.status !== 'granted') {
-        Alert.alert(
-          'Permissions Required',
+    
+    if (!cameraPermission?.granted || mediaLibraryPermission.status !== 'granted') {
+      Alert.alert(
+        'Permissions Required',
           'Camera and media library permissions are needed to use this feature. Please grant permissions in your device settings.',
           [
             { text: 'Cancel', style: 'cancel' },

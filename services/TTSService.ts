@@ -20,7 +20,6 @@ class TTSServiceClass {
         language: 'en-US',
         pitch: options?.pitch || this.speechPitch,
         rate: options?.rate || this.speechRate,
-        quality: Speech.VoiceQuality.Enhanced,
         onStart: () => {
           this.isPlaying = true;
         },

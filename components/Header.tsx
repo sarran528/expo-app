@@ -67,26 +67,26 @@ export function Header({ title, showMenu = true }: HeaderProps) {
 
   return (
     <>
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <View style={styles.headerContent}>
-          <Text 
-            style={[styles.title, { color: colors.text, fontSize: fontSize.xlarge }]}
-            accessible={true}
-            accessibilityRole="header"
-            accessibilityLabel={`${title} screen`}
-          >
-            {title}
-          </Text>
-          
-          {showMenu && (
-            <View style={styles.headerActions}>
-              <TouchableOpacity
+    <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={styles.headerContent}>
+        <Text 
+          style={[styles.title, { color: colors.text, fontSize: fontSize.xlarge }]}
+          accessible={true}
+          accessibilityRole="header"
+          accessibilityLabel={`${title} screen`}
+        >
+          {title}
+        </Text>
+        
+        {showMenu && (
+          <View style={styles.headerActions}>
+            <TouchableOpacity
                 onPress={handleMenuPress}
-                style={[styles.headerButton, { backgroundColor: colors.background }]}
-                accessible={true}
+              style={[styles.headerButton, { backgroundColor: colors.background }]}
+              accessible={true}
                 accessibilityLabel="Open menu"
-                accessibilityRole="button"
-              >
+              accessibilityRole="button"
+            >
                 <Menu size={24} color={colors.text} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
@@ -130,8 +130,8 @@ export function Header({ title, showMenu = true }: HeaderProps) {
                 <Settings size={20} color={colors.text} strokeWidth={2.5} />,
                 'Settings',
                 handleSettingsPress
-              )}
-            </View>
+        )}
+      </View>
           </Animated.View>
         </TouchableOpacity>
       </Modal>
