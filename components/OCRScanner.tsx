@@ -229,7 +229,7 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
                   )}
                 />
               </View>
-              {/* Bottom Controls: Camera flip in bottom right, others as before */}
+              {/* Bottom Controls: Evenly spaced */}
               <View style={styles.bottomControlsRow}>
                 <AccessibleButton
                   onPress={pickImageFromGallery}
@@ -250,21 +250,13 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
                   accessibilityLabel={`Switch to ${facing === 'back' ? 'front' : 'back'} camera`}
                   icon={<RotateCcw size={24} color={colors.text} strokeWidth={2.5} />}
                 />
-                <View style={styles.spacer} />
               </View>
             </View>
           </View>
         )}
       </View>
       {/* Instructions and rest as before */}
-      <View style={[styles.instructions, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-        <Text style={[styles.instructionText, { color: colors.textSecondary, fontSize: fontSize.small }]}>
-          {capturedImage 
-            ? 'Review the captured image and process it to extract text'
-            : 'Position text clearly in the camera view and tap capture'
-          }
-        </Text>
-      </View>
+      {/* Remove instructional text below camera view */}
     </View>
   );
 }
@@ -390,7 +382,7 @@ const styles = StyleSheet.create({
   bottomControlsRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-evenly',
     marginBottom: 24,
     marginRight: 8,
     gap: 12,

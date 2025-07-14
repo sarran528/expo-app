@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 32,
     flexWrap: 'wrap',
+    color: 'blue',
   },
   highlightedWord: {
     fontWeight: 'bold',
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   normalWord: {
-    color: '#222',
+    color: '#3278b5',
   },
   controlsRow: {
     flexDirection: 'row',
