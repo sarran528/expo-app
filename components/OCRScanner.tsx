@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -33,7 +33,16 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
   const [processingStatus, setProcessingStatus] = useState('');
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
-  const { setScannerOpen } = useOCRScanner();
+  const { setCameraActive } = useOCRScanner();
+
+  useEffect(() => {
+    if (visible) {
+      setCameraActive(true);
+    }
+    return () => {
+      setCameraActive(false);
+    };
+  }, [visible, setCameraActive]);
 
   if (!visible) return null;
 
@@ -100,7 +109,6 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
 
       if (extractedText.trim()) {
         onTextExtracted(extractedText, manipResult.uri);
-        setScannerOpen(false); // Ensure header/tab bar restored before navigation
         router.push({ pathname: '/text-reader', params: { text: extractedText } });
       } else {
         Alert.alert('No Text Found', 'No readable text was detected in this image. Please try with a clearer image.');

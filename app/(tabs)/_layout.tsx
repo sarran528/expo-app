@@ -13,9 +13,9 @@ const TAB_TITLES: Record<string, string> = {
 
 // Context to control scanner visibility globally
 const OCRScannerContext = createContext<{
-  scannerOpen: boolean;
-  setScannerOpen: (open: boolean) => void;
-}>({ scannerOpen: false, setScannerOpen: () => {} });
+  cameraActive: boolean;
+  setCameraActive: (open: boolean) => void;
+}>({ cameraActive: false, setCameraActive: () => {} });
 
 export function useOCRScanner() {
   return useContext(OCRScannerContext);
@@ -23,8 +23,8 @@ export function useOCRScanner() {
 
 function TabHeader() {
   const segments = useSegments();
-  const { scannerOpen } = useOCRScanner();
-  if (scannerOpen) return null;
+  const { cameraActive } = useOCRScanner();
+  if (cameraActive) return null;
   const tab = [...segments].reverse().find(seg => seg in TAB_TITLES) || 'gallery';
   const title = TAB_TITLES[tab] || '';
   return <AppHeader title={title} />;
@@ -32,10 +32,10 @@ function TabHeader() {
 
 export default function TabLayout() {
   const { colors } = useTheme();
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
 
   return (
-    <OCRScannerContext.Provider value={{ scannerOpen, setScannerOpen }}>
+    <OCRScannerContext.Provider value={{ cameraActive, setCameraActive }}>
       <View style={{ flex: 1 }}>
         <TabHeader />
         <Tabs
@@ -47,7 +47,7 @@ export default function TabLayout() {
               height: 80,
               paddingBottom: 20,
               paddingTop: 8,
-              display: scannerOpen ? 'none' : 'flex',
+              display: cameraActive ? 'none' : 'flex',
             },
             tabBarLabelStyle: {
               fontSize: 14,

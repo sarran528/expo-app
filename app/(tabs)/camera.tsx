@@ -9,25 +9,26 @@ import { useFocusEffect } from 'expo-router';
 export default function CameraTabScreen() {
   const [visible, setVisible] = useState(false); // Default to placeholder, not scanner
   const { colors, fontSize } = useTheme();
-  const { setScannerOpen } = useOCRScanner();
+  const { setCameraActive } = useOCRScanner();
 
   const openScanner = () => {
     setVisible(true);
-    setScannerOpen(true);
+    setCameraActive(true);
   };
   const closeScanner = () => {
     setVisible(false);
-    setScannerOpen(false);
+    setCameraActive(false);
   };
 
-  // Ensure scannerOpen is reset when leaving the tab or unmounting
+  // Ensure cameraActive is reset when leaving the tab or unmounting
   useFocusEffect(
     React.useCallback(() => {
       // On focus: do nothing
       return () => {
-        setScannerOpen(false);
+        setCameraActive(false);
+        setVisible(false); // Reset scanner visibility when leaving tab
       };
-    }, [setScannerOpen])
+    }, [setCameraActive])
   );
 
   return (
@@ -37,7 +38,7 @@ export default function CameraTabScreen() {
         <OCRScanner
           visible={visible}
           onClose={closeScanner}
-          onTextExtracted={() => {}}
+          onTextExtracted={() => setVisible(false)} // Close scanner after scan
         />
       ) : (
         <View style={styles.placeholderContainer}>
