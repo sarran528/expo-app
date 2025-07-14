@@ -111,9 +111,8 @@ export default function PDFScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader title="PDF Viewer" />
-      
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+      {/* Header removed, now handled globally */}
       <ScrollView 
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
@@ -128,10 +127,10 @@ export default function PDFScreen() {
               strokeWidth={1.5}
               accessible={false}
             />
-            <Text style={[styles.emptyTitle, { color: colors.text, fontSize: fontSize.large }]}>
+            <Text style={[styles.emptyTitle, { color: colors.text, fontSize: fontSize.large }]}> 
               No PDF Selected
             </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary, fontSize: fontSize.medium }]}>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary, fontSize: fontSize.medium }]}> 
               Import a PDF document to view and hear its content
             </Text>
             
@@ -146,7 +145,7 @@ export default function PDFScreen() {
           </View>
         ) : (
           <View style={styles.pdfViewer}>
-            <View style={[styles.pdfHeader, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.pdfHeader, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
               <Text 
                 style={[styles.pdfTitle, { color: colors.text, fontSize: fontSize.large }]}
                 accessible={true}
@@ -162,56 +161,53 @@ export default function PDFScreen() {
                 {formatFileSize(selectedPDF.size)}
               </Text>
             </View>
+            {/* Controls and extracted text */}
+            <>
+              <View style={[styles.textControls, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
+                <AccessibleButton
+                  onPress={handlePlayPause}
+                  style={[styles.controlButton, { backgroundColor: colors.primary }]as any}
+                  accessibilityLabel={isPlaying ? 'Pause reading' : 'Start reading'}
+                >
+                  {isPlaying ? (
+                    <Pause size={24} color={colors.onPrimary} strokeWidth={2.5} />
+                  ) : (
+                    <Play size={24} color={colors.onPrimary} strokeWidth={2.5} />
+                  )}
+                </AccessibleButton>
+                
+                <AccessibleButton
+                  onPress={handleStop}
+                  style={[styles.controlButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
+                  accessibilityLabel="Stop reading"
+                >
+                  <Square size={24} color={colors.text} strokeWidth={2.5} />
+                </AccessibleButton>
+                
+                <AccessibleButton
+                  onPress={handleMuteToggle}
+                  style={[styles.controlButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
+                  accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? (
+                    <VolumeX size={24} color={colors.textSecondary} strokeWidth={2.5} />
+                  ) : (
+                    <Volume2 size={24} color={colors.text} strokeWidth={2.5} />
+                  )}
+                </AccessibleButton>
+              </View>
 
-            {selectedPDF.extractedText && (
-              <>
-                <View style={[styles.textControls, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                  <AccessibleButton
-                    onPress={handlePlayPause}
-                    style={[styles.controlButton, { backgroundColor: colors.primary }]as any}
-                    accessibilityLabel={isPlaying ? 'Pause reading' : 'Start reading'}
-                  >
-                    {isPlaying ? (
-                      <Pause size={24} color={colors.onPrimary} strokeWidth={2.5} />
-                    ) : (
-                      <Play size={24} color={colors.onPrimary} strokeWidth={2.5} />
-                    )}
-                  </AccessibleButton>
-                  
-                  <AccessibleButton
-                    onPress={handleStop}
-                    style={[styles.controlButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
-                    accessibilityLabel="Stop reading"
-                  >
-                    <Square size={24} color={colors.text} strokeWidth={2.5} />
-                  </AccessibleButton>
-                  
-                  <AccessibleButton
-                    onPress={handleMuteToggle}
-                    style={[styles.controlButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
-                    accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
-                  >
-                    {isMuted ? (
-                      <VolumeX size={24} color={colors.textSecondary} strokeWidth={2.5} />
-                    ) : (
-                      <Volume2 size={24} color={colors.text} strokeWidth={2.5} />
-                    )}
-                  </AccessibleButton>
-                </View>
-
-                <View style={[styles.textContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                  <Text 
-                    style={[styles.extractedText, { color: colors.text, fontSize: fontSize.medium }]}
-                    accessible={true}
-                    accessibilityLabel="Extracted PDF text"
-                    selectable={true}
-                  >
-                    {selectedPDF.extractedText}
-                  </Text>
-                </View>
-              </>
-            )}
-
+              <View style={[styles.textContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
+                <Text 
+                  style={[styles.extractedText, { color: colors.text, fontSize: fontSize.medium }]}
+                  accessible={true}
+                  accessibilityLabel="Extracted PDF text"
+                  selectable={true}
+                >
+                  {selectedPDF.extractedText}
+                </Text>
+              </View>
+            </>
             <AccessibleButton
               title="Import Different PDF"
               onPress={pickPDF}

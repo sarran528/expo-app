@@ -3,19 +3,29 @@ import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
 import { OCRScanner } from '../../components/OCRScanner';
 import { useTheme } from '@/hooks/useTheme';
 import { AccessibleButton } from '../../components/AccessibleButton';
-import { AppHeader } from '../../components/AppHeader';
+import { useOCRScanner } from './_layout';
 
 export default function CameraTabScreen() {
   const [visible, setVisible] = useState(false); // Default to placeholder, not scanner
   const { colors, fontSize } = useTheme();
+  const { setScannerOpen } = useOCRScanner();
+
+  const openScanner = () => {
+    setVisible(true);
+    setScannerOpen(true);
+  };
+  const closeScanner = () => {
+    setVisible(false);
+    setScannerOpen(false);
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
-      <AppHeader title="Camera" />
+      {/* Header removed, now handled globally */}
       {visible ? (
         <OCRScanner
           visible={visible}
-          onClose={() => setVisible(false)}
+          onClose={closeScanner}
           onTextExtracted={() => {}}
         />
       ) : (
@@ -24,7 +34,7 @@ export default function CameraTabScreen() {
           <Text style={[styles.placeholderSubtext, { color: colors.textSecondary, fontSize: fontSize.medium }]}>Tap below to start scanning again.</Text>
           <AccessibleButton
             title="Open OCR Scanner"
-            onPress={() => setVisible(true)}
+            onPress={openScanner}
             style={[styles.openButton, { backgroundColor: colors.primary }] as any}
             textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
             accessibilityLabel="Open OCR scanner"

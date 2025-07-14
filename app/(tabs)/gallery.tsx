@@ -121,7 +121,6 @@ export default function GalleryScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <AppHeader title="Gallery" />
         <View style={styles.centered}>
           <Text style={[styles.loadingText, { color: colors.text, fontSize: fontSize.large }]}>
             Loading images...
@@ -133,8 +132,6 @@ export default function GalleryScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader title="Gallery" />
-      
       {images.length === 0 ? (
         <View style={styles.centered}>
           <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: fontSize.large }]}>
