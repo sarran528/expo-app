@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as MediaLibrary from 'expo-media-library';
 import { Share, Trash2, Download, Eye } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { Header } from '@/components/Header';
+import { AppHeader } from '../../components/AppHeader';
 import { AccessibleButton } from '@/components/AccessibleButton';
 import { ImageModal } from '@/components/ImageModal';
 import { OCRService } from '@/services/OCRService';
@@ -121,7 +121,7 @@ export default function GalleryScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <Header title="Gallery" />
+        <AppHeader title="Gallery" />
         <View style={styles.centered}>
           <Text style={[styles.loadingText, { color: colors.text, fontSize: fontSize.large }]}>
             Loading images...
@@ -133,7 +133,7 @@ export default function GalleryScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title="Gallery" />
+      <AppHeader title="Gallery" />
       
       {images.length === 0 ? (
         <View style={styles.centered}>

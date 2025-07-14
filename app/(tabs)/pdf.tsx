@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import { FileText, Upload, Volume2, VolumeX, Play, Pause, Square } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { Header } from '@/components/Header';
+import { AppHeader } from '../../components/AppHeader';
 import { AccessibleButton } from '@/components/AccessibleButton';
 import { TTSService } from '@/services/TTSService';
 import { LoadingModal } from '@/components/LoadingModal';
@@ -112,7 +112,7 @@ export default function PDFScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title="PDF Viewer" />
+      <AppHeader title="PDF Viewer" />
       
       <ScrollView 
         style={styles.content}

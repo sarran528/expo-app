@@ -3,7 +3,7 @@ import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
 import { OCRScanner } from '../../components/OCRScanner';
 import { useTheme } from '@/hooks/useTheme';
 import { AccessibleButton } from '../../components/AccessibleButton';
-import { Header } from '@/components/Header';
+import { AppHeader } from '../../components/AppHeader';
 
 export default function CameraTabScreen() {
   const [visible, setVisible] = useState(false); // Default to placeholder, not scanner
@@ -19,7 +19,7 @@ export default function CameraTabScreen() {
         />
       ) : (
         <>
-          <Header title="Camera" />
+          <AppHeader title="Camera" />
           <View style={styles.placeholderContainer}>
             <Text style={[styles.placeholderText, { color: colors.text, fontSize: fontSize.large }]}>OCR Scanner Closed</Text>
             <Text style={[styles.placeholderSubtext, { color: colors.textSecondary, fontSize: fontSize.medium }]}>Tap below to start scanning again.</Text>
