@@ -11,7 +11,7 @@ import {
 import { CameraView, CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { Camera as CameraIcon, Image as ImageIcon, RotateCcw, X, Eye } from 'lucide-react-native';
+import { Camera as CameraIcon, Image as ImageIcon, RotateCcw, X, Eye, Zap, ZapOff } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { AccessibleButton } from './AccessibleButton';
 import { OCRService, extractTextFromImage } from '@/services/OCRService';
@@ -26,6 +26,7 @@ interface OCRScannerProps {
 export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProps) {
   const { colors, fontSize } = useTheme();
   const [facing, setFacing] = useState<CameraType>('back');
+  const [flash, setFlash] = useState<'off' | 'on'>('off');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
@@ -36,6 +37,10 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
 
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
+  };
+
+  const toggleFlash = () => {
+    setFlash(current => (current === 'off' ? 'on' : 'off'));
   };
 
   const takePicture = async () => {
@@ -205,45 +210,53 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
               ref={cameraRef}
               style={styles.camera}
               facing={facing}
+              flash={flash}
               accessible={false}
             />
             
             <View style={[styles.cameraOverlay, { backgroundColor: colors.overlay }]}>
-              {/* Top Controls */}
-              <View style={styles.topControls}>
+              {/* Top Controls: Flash toggle in top right */}
+              <View style={styles.topControlsRow}>
+                <View style={{ flex: 1 }} />
                 <AccessibleButton
-                  onPress={toggleCameraFacing}
-                  style={[styles.overlayButton, { backgroundColor: colors.surface }]as any}
-                  accessibilityLabel={`Switch to ${facing === 'back' ? 'front' : 'back'} camera`}
-                  icon={<RotateCcw size={24} color={colors.text} strokeWidth={2.5} />}
+                  onPress={toggleFlash}
+                  style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
+                  accessibilityLabel={`Flash is ${flash === 'on' ? 'on' : 'off'}. Tap to toggle`}
+                  icon={flash === 'on' ? (
+                    <Zap size={24} color={colors.primary} strokeWidth={2.5} />
+                  ) : (
+                    <ZapOff size={24} color={colors.textSecondary} strokeWidth={2.5} />
+                  )}
                 />
               </View>
-              
-              {/* Bottom Controls */}
-              <View style={styles.bottomControls}>
+              {/* Bottom Controls: Camera flip in bottom right, others as before */}
+              <View style={styles.bottomControlsRow}>
                 <AccessibleButton
                   onPress={pickImageFromGallery}
-                  style={[styles.overlayButton, { backgroundColor: colors.surface }]as any}
+                  style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
                   accessibilityLabel="Import image from gallery"
                   icon={<ImageIcon size={24} color={colors.text} strokeWidth={2.5} />}
                 />
-                
                 <AccessibleButton
                   onPress={takePicture}
                   disabled={isProcessing}
-                  style={[styles.captureButton, { backgroundColor: colors.primary }]as any}
+                  style={[styles.captureButton, { backgroundColor: colors.primary }] as any}
                   accessibilityLabel="Capture photo for OCR"
                   icon={<CameraIcon size={28} color={colors.onPrimary} strokeWidth={2.5} />}
                 />
-                
+                <AccessibleButton
+                  onPress={toggleCameraFacing}
+                  style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
+                  accessibilityLabel={`Switch to ${facing === 'back' ? 'front' : 'back'} camera`}
+                  icon={<RotateCcw size={24} color={colors.text} strokeWidth={2.5} />}
+                />
                 <View style={styles.spacer} />
               </View>
             </View>
           </View>
         )}
       </View>
-
-      {/* Instructions */}
+      {/* Instructions and rest as before */}
       <View style={[styles.instructions, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         <Text style={[styles.instructionText, { color: colors.textSecondary, fontSize: fontSize.small }]}>
           {capturedImage 
@@ -366,5 +379,20 @@ const styles = StyleSheet.create({
   instructionText: {
     textAlign: 'center',
     lineHeight: 20,
+  },
+  topControlsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 8,
+    marginRight: 8,
+  },
+  bottomControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    marginBottom: 24,
+    marginRight: 8,
+    gap: 12,
   },
 });

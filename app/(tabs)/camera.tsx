@@ -1,17 +1,58 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
 import { OCRScanner } from '../../components/OCRScanner';
+import { useTheme } from '@/hooks/useTheme';
+import { AccessibleButton } from '../../components/AccessibleButton';
 
 export default function CameraTabScreen() {
   const [visible, setVisible] = useState(true);
+  const { colors, fontSize } = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <OCRScanner
-        visible={visible}
-        onClose={() => setVisible(false)}
-        onTextExtracted={() => {}}
-      />
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      {visible ? (
+        <OCRScanner
+          visible={visible}
+          onClose={() => setVisible(false)}
+          onTextExtracted={() => {}}
+        />
+      ) : (
+        <View style={styles.placeholderContainer}>
+          <Text style={[styles.placeholderText, { color: colors.text, fontSize: fontSize.large }]}>OCR Scanner Closed</Text>
+          <Text style={[styles.placeholderSubtext, { color: colors.textSecondary, fontSize: fontSize.medium }]}>Tap below to start scanning again.</Text>
+          <AccessibleButton
+            title="Open OCR Scanner"
+            onPress={() => setVisible(true)}
+            style={[styles.openButton, { backgroundColor: colors.primary }] as any}
+            textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
+            accessibilityLabel="Open OCR scanner"
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  placeholderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  placeholderText: {
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  placeholderSubtext: {
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  openButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+});
