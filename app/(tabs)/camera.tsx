@@ -11,6 +11,7 @@ export default function CameraTabScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+      <AppHeader title="Camera" />
       {visible ? (
         <OCRScanner
           visible={visible}
@@ -18,20 +19,17 @@ export default function CameraTabScreen() {
           onTextExtracted={() => {}}
         />
       ) : (
-        <>
-          <AppHeader title="Camera" />
-          <View style={styles.placeholderContainer}>
-            <Text style={[styles.placeholderText, { color: colors.text, fontSize: fontSize.large }]}>OCR Scanner Closed</Text>
-            <Text style={[styles.placeholderSubtext, { color: colors.textSecondary, fontSize: fontSize.medium }]}>Tap below to start scanning again.</Text>
-            <AccessibleButton
-              title="Open OCR Scanner"
-              onPress={() => setVisible(true)}
-              style={[styles.openButton, { backgroundColor: colors.primary }] as any}
-              textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
-              accessibilityLabel="Open OCR scanner"
-            />
-          </View>
-        </>
+        <View style={styles.placeholderContainer}>
+          <Text style={[styles.placeholderText, { color: colors.text, fontSize: fontSize.large }]}>OCR Scanner Closed</Text>
+          <Text style={[styles.placeholderSubtext, { color: colors.textSecondary, fontSize: fontSize.medium }]}>Tap below to start scanning again.</Text>
+          <AccessibleButton
+            title="Open OCR Scanner"
+            onPress={() => setVisible(true)}
+            style={[styles.openButton, { backgroundColor: colors.primary }] as any}
+            textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
+            accessibilityLabel="Open OCR scanner"
+          />
+        </View>
       )}
     </SafeAreaView>
   );
