@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,11 +15,14 @@ import { AppHeader } from '../../components/AppHeader';
 import { AccessibleButton } from '@/components/AccessibleButton';
 import { TTSService } from '@/services/TTSService';
 import { LoadingModal } from '@/components/LoadingModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PDFListSection } from '../../components/PDFListSection';
 
 interface PDFDocument {
   uri: string;
   name: string;
   size: number;
+  date: string; // ISO string
   extractedText?: string;
 }
 
@@ -29,6 +32,32 @@ export default function PDFScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [pdfList, setPdfList] = useState<PDFDocument[]>([]);
+
+  // Load PDFs from storage on mount
+  useEffect(() => {
+    (async () => {
+      const stored = await AsyncStorage.getItem('uploadedPDFs');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Ensure all PDFs have a 'date' field
+        const withDate = parsed.map((pdf: any) => ({
+          ...pdf,
+          date: pdf.date || new Date().toISOString(),
+        }));
+        setPdfList(withDate);
+      }
+    })();
+  }, []);
+
+  // Save PDFs to storage when pdfList changes
+  useEffect(() => {
+    AsyncStorage.setItem('uploadedPDFs', JSON.stringify(pdfList));
+  }, [pdfList]);
+
+  const handlePDFSelect = (pdf: PDFDocument) => {
+    setSelectedPDF(pdf);
+  };
 
   const pickPDF = async () => {
     try {
@@ -43,10 +72,12 @@ export default function PDFScreen() {
           uri: asset.uri,
           name: asset.name,
           size: asset.size || 0,
+          date: new Date().toISOString(), // Add current date
         };
         
         setSelectedPDF(pdfDoc);
         await extractTextFromPDF(pdfDoc);
+        setPdfList(prev => [pdfDoc, ...prev.filter(p => p.uri !== pdfDoc.uri)]);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to pick PDF document');
@@ -119,104 +150,27 @@ export default function PDFScreen() {
         accessible={true}
         accessibilityLabel="PDF viewer content"
       >
-        {!selectedPDF ? (
-          <View style={styles.emptyState}>
-            <FileText 
-              size={64} 
-              color={colors.textSecondary} 
-              strokeWidth={1.5}
-              accessible={false}
-            />
-            <Text style={[styles.emptyTitle, { color: colors.text, fontSize: fontSize.large }]}> 
-              No PDF Selected
-            </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary, fontSize: fontSize.medium }]}> 
-              Import a PDF document to view and hear its content
-            </Text>
-            
-            <AccessibleButton
-              title="Import PDF"
-              onPress={pickPDF}
-              style={[styles.importButton, { backgroundColor: colors.primary }]as any}
-              textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
-              accessibilityLabel="Import PDF document"
-              icon={<Upload size={24} color={colors.onPrimary} strokeWidth={2.5} />}
-            />
-          </View>
-        ) : (
-          <View style={styles.pdfViewer}>
-            <View style={[styles.pdfHeader, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-              <Text 
-                style={[styles.pdfTitle, { color: colors.text, fontSize: fontSize.large }]}
-                accessible={true}
-                accessibilityLabel={`PDF document: ${selectedPDF.name}`}
-              >
-                {selectedPDF.name}
-              </Text>
-              <Text 
-                style={[styles.pdfSize, { color: colors.textSecondary, fontSize: fontSize.small }]}
-                accessible={true}
-                accessibilityLabel={`File size: ${formatFileSize(selectedPDF.size)}`}
-              >
-                {formatFileSize(selectedPDF.size)}
-              </Text>
-            </View>
-            {/* Controls and extracted text */}
-            <>
-              <View style={[styles.textControls, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-                <AccessibleButton
-                  onPress={handlePlayPause}
-                  style={[styles.controlButton, { backgroundColor: colors.primary }]as any}
-                  accessibilityLabel={isPlaying ? 'Pause reading' : 'Start reading'}
-                >
-                  {isPlaying ? (
-                    <Pause size={24} color={colors.onPrimary} strokeWidth={2.5} />
-                  ) : (
-                    <Play size={24} color={colors.onPrimary} strokeWidth={2.5} />
-                  )}
-                </AccessibleButton>
-                
-                <AccessibleButton
-                  onPress={handleStop}
-                  style={[styles.controlButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
-                  accessibilityLabel="Stop reading"
-                >
-                  <Square size={24} color={colors.text} strokeWidth={2.5} />
-                </AccessibleButton>
-                
-                <AccessibleButton
-                  onPress={handleMuteToggle}
-                  style={[styles.controlButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
-                  accessibilityLabel={isMuted ? 'Unmute' : 'Mute'}
-                >
-                  {isMuted ? (
-                    <VolumeX size={24} color={colors.textSecondary} strokeWidth={2.5} />
-                  ) : (
-                    <Volume2 size={24} color={colors.text} strokeWidth={2.5} />
-                  )}
-                </AccessibleButton>
-              </View>
-
-              <View style={[styles.textContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-                <Text 
-                  style={[styles.extractedText, { color: colors.text, fontSize: fontSize.medium }]}
-                  accessible={true}
-                  accessibilityLabel="Extracted PDF text"
-                  selectable={true}
-                >
-                  {selectedPDF.extractedText}
-                </Text>
-              </View>
-            </>
-            <AccessibleButton
-              title="Import Different PDF"
-              onPress={pickPDF}
-              style={[styles.changeButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]as any}
-              textStyle={{ color: colors.text, fontSize: fontSize.medium }}
-              accessibilityLabel="Import a different PDF document"
-            />
-          </View>
-        )}
+        <PDFListSection pdfs={pdfList} onSelect={handlePDFSelect} selectedPDF={selectedPDF} />
+        <View style={styles.emptyState}>
+          <TouchableOpacity
+            onPress={pickPDF}
+            accessibilityLabel="Import PDF document"
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              backgroundColor: colors.primary,
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+          >
+            <Text style={{ color: colors.onPrimary, fontSize: 48, fontWeight: 'bold', marginTop: -4 }}>+</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <LoadingModal 

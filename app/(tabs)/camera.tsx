@@ -31,8 +31,8 @@ export default function CameraTabScreen() {
     }, [setCameraActive])
   );
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header removed, now handled globally */}
       {visible ? (
         <OCRScanner
