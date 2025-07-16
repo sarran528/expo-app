@@ -15,7 +15,7 @@ export default function NotFoundScreen() {
   );
 }
 
-nhhkjjjk
+nhhkjjjkyyhgghj
 
 const styles = StyleSheet.create({
   container: {
