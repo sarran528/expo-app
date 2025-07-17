@@ -21,9 +21,11 @@ interface PDFListSectionProps {
   onShare?: (pdf: PDFDocument) => void;
   onSort?: (by: 'name' | 'date' | 'size') => void;
   onInvertSort?: () => void;
+  sortBy?: 'name' | 'date' | 'size';
+  sortOrder?: 'asc' | 'desc';
 }
 
-export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, selectedPDF, onDelete, onOCR, onShare, onSort, onInvertSort }) => {
+export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, selectedPDF, onDelete, onOCR, onShare, onSort, onInvertSort, sortBy = 'date', sortOrder = 'desc' }) => {
   const { colors, fontSize } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalPDF, setModalPDF] = useState<PDFDocument | null>(null);
@@ -109,10 +111,19 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
     }
   };
 
+  function getSortLabel(sortBy: 'name' | 'date' | 'size', sortOrder: 'asc' | 'desc') {
+    if (sortBy === 'date') return sortOrder === 'asc' ? 'First Uploaded' : 'Recently Added';
+    if (sortBy === 'name') return sortOrder === 'asc' ? 'Alphabetical Order' : 'Reverse Alphabetical';
+    if (sortBy === 'size') return sortOrder === 'asc' ? 'Smallest Files First' : 'Biggest Files First';
+    return '';
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: 'transparent' }]}> {/* No background color */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium }]}>Recent files</Text>
+        <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium }]}>
+          {getSortLabel(sortBy, sortOrder) || ' '}
+        </Text>
         <TouchableOpacity
           onPress={() => setSortModalVisible(true)}
           style={{ padding: 4 }}

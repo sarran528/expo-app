@@ -298,6 +298,8 @@ function PDFScreen() {
             onShare={handleSharePDF}
             onSort={handleSort}
             onInvertSort={() => setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
           />
           <View style={styles.emptyState}>
             <TouchableOpacity
