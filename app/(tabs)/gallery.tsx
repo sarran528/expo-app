@@ -8,9 +8,11 @@ import {
   Alert,
   StyleSheet,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import { Share, Trash2, Download, Eye } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { AppHeader } from '../../components/AppHeader';
@@ -33,6 +35,9 @@ export default function GalleryScreen() {
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
 
   useEffect(() => {
     loadImages();
@@ -95,6 +100,60 @@ export default function GalleryScreen() {
     }
   };
 
+  const handleDelete = async (image: ImageItem) => {
+    try {
+      await MediaLibrary.deleteAssetsAsync([image.id]);
+      setImages(prev => prev.filter(img => img.id !== image.id));
+      setSelectedImage(null);
+    } catch (error) {
+      Alert.alert('Delete Error', 'Failed to delete image');
+    }
+  };
+
+  const handleShare = async (image: ImageItem) => {
+    try {
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert('Sharing not available on this device');
+        return;
+      }
+      await Sharing.shareAsync(image.uri, {
+        mimeType: 'image/jpeg',
+        dialogTitle: `Share ${image.filename}`,
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share image');
+    }
+  };
+
+  const handleSort = (by: 'name' | 'date' | 'size') => {
+    if (sortBy === by) {
+      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(by);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedImages = [...images].sort((a, b) => {
+    let cmp = 0;
+    if (sortBy === 'name') {
+      cmp = a.filename.localeCompare(b.filename);
+    } else if (sortBy === 'date') {
+      cmp = a.creationTime - b.creationTime;
+    } else if (sortBy === 'size') {
+      // No size info, fallback to name
+      cmp = a.filename.localeCompare(b.filename);
+    }
+    return sortOrder === 'asc' ? cmp : -cmp;
+  });
+
+  function getSortLabel(sortBy: 'name' | 'date' | 'size', sortOrder: 'asc' | 'desc') {
+    if (sortBy === 'date') return sortOrder === 'asc' ? 'First Uploaded' : 'Recently Added';
+    if (sortBy === 'name') return sortOrder === 'asc' ? 'Alphabetical Order' : 'Reverse Alphabetical';
+    if (sortBy === 'size') return sortOrder === 'asc' ? 'Smallest Files First' : 'Biggest Files First';
+    return '';
+  }
+
   const renderImageItem = ({ item }: { item: ImageItem }) => (
     <TouchableOpacity
       style={[styles.imageContainer, { borderColor: colors.border }]}
@@ -131,8 +190,16 @@ export default function GalleryScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {images.length === 0 ? (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, paddingHorizontal: 16 }}>
+        <Text style={{ color: colors.text, fontWeight: '600', fontSize: fontSize.medium }}>
+          {getSortLabel(sortBy, sortOrder) || ' '}
+        </Text>
+        <TouchableOpacity onPress={() => setSortModalVisible(true)} style={{ padding: 4 }} accessibilityLabel="Sort Images">
+          <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Sort</Text>
+        </TouchableOpacity>
+      </View>
+      {sortedImages.length === 0 ? (
         <View style={styles.centered}>
           <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: fontSize.large }]}>
             No images found
@@ -143,7 +210,7 @@ export default function GalleryScreen() {
         </View>
       ) : (
         <FlatList
-          data={images}
+          data={sortedImages}
           renderItem={renderImageItem}
           keyExtractor={(item) => item.id}
           numColumns={2}
@@ -162,15 +229,53 @@ export default function GalleryScreen() {
           accessibilityLabel="Image gallery grid"
         />
       )}
-
       {selectedImage && (
         <ImageModal
           image={selectedImage}
           onClose={() => setSelectedImage(null)}
           onOCR={() => handleOCR(selectedImage)}
           onTTS={handleTTS}
+          onDelete={() => handleDelete(selectedImage)}
+          onShare={() => handleShare(selectedImage)}
         />
       )}
+      {/* Sort Modal */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => setSortModalVisible(false)}>
+          <View style={{ width: 220, borderRadius: 12, borderWidth: 1, paddingVertical: 8, alignItems: 'stretch', elevation: 4, backgroundColor: colors.surface, borderColor: colors.border }}>
+            {['name', 'date', 'size'].map((by) => (
+              <TouchableOpacity
+                key={by}
+                style={{ paddingVertical: 14, paddingHorizontal: 20 }}
+                onPress={() => {
+                  handleSort(by as 'name' | 'date' | 'size');
+                  setSortModalVisible(false);
+                }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text }}>
+                  Sort by {by.charAt(0).toUpperCase() + by.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={{ paddingVertical: 14, paddingHorizontal: 20 }}
+              onPress={() => {
+                setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+                setSortModalVisible(false);
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text }}>
+                Invert Order
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
