@@ -152,7 +152,7 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
                   </View>
                 </View>
                 <View style={styles.infoContainer}>
-                  <Text style={[styles.name, { color: colors.text, fontSize: fontSize.medium }]} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
+                  <Text style={[styles.name, { color: colors.text, fontSize: fontSize.medium }]} numberOfLines={1} ellipsizeMode="tail">{item.name || 'No name'}</Text>
                   <Text style={[styles.meta, { color: colors.textSecondary, fontSize: fontSize.small }]}
                     numberOfLines={1} ellipsizeMode="tail">
                     {`${formatDate(item.date)}, ${formatFileSize(item.size)}, PDF document`}
