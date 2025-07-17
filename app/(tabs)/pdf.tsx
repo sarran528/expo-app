@@ -163,6 +163,22 @@ function PDFScreen() {
     // In a real implementation, you would adjust TTS volume
   };
 
+  const handleDeletePDF = async (pdf: PDFDocument) => {
+    // Remove from state
+    setPdfList(prev => prev.filter(p => p.uri !== pdf.uri));
+    // Remove from AsyncStorage
+    const updatedList = pdfList.filter(p => p.uri !== pdf.uri);
+    await AsyncStorage.setItem('uploadedPDFs', JSON.stringify(updatedList));
+    // (Optional) Delete the file from the file system if you want:
+    // try {
+    //   await FileSystem.deleteAsync(pdf.uri, { idempotent: true });
+    // } catch (e) {
+    //   // Handle error or ignore if file doesn't exist
+    // }
+    // If the deleted PDF was open, close it
+    if (selectedPDF?.uri === pdf.uri) setSelectedPDF(null);
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -235,7 +251,7 @@ function PDFScreen() {
           accessible={true}
           accessibilityLabel="PDF viewer content"
         >
-          <PDFListSection pdfs={pdfList} onSelect={handlePDFSelect} selectedPDF={selectedPDF} />
+          <PDFListSection pdfs={pdfList} onSelect={handlePDFSelect} selectedPDF={selectedPDF} onDelete={handleDeletePDF} />
           <View style={styles.emptyState}>
             <TouchableOpacity
               onPress={pickPDF}
