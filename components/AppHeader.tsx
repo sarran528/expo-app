@@ -127,7 +127,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true }) 
 const styles = StyleSheet.create({
   header: {
     borderBottomWidth: 1,
-    paddingTop: 8,
+    paddingTop:21,
     paddingBottom: 16,
     paddingHorizontal: 16,
   },
@@ -139,6 +139,7 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: '700',
     flex: 1,
+    marginTop:14,
   },
   headerActions: {
     flexDirection: 'row',
@@ -150,6 +151,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 13,  
   },
   modalOverlay: {
     flex: 1,
