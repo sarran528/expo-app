@@ -21,6 +21,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PDFListSection } from '../../components/PDFListSection';
 import Pdf from 'react-native-pdf';
 import { usePDFViewer } from './_layout';
+import { useFocusEffect } from '@react-navigation/native';
+import { BackHandler } from 'react-native';
 
 interface PDFDocument {
   uri: string;
@@ -66,6 +68,24 @@ function PDFScreen() {
     setPdfOpen(!!selectedPDF);
     return () => setPdfOpen(false);
   }, [selectedPDF]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (selectedPDF) {
+          setSelectedPDF(null);
+          return true; // Prevent default back action
+        }
+        return false; // Allow default back action
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        subscription.remove();
+      };
+    }, [selectedPDF])
+  );
 
   const handlePDFSelect = (pdf: PDFDocument) => {
     setSelectedPDF(pdf);
