@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActionSheetIOS, Platform, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActionSheetIOS, Platform, Modal, Alert, ScrollView } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { FileText, MoreVertical } from 'lucide-react-native';
 
@@ -54,7 +54,16 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
         if (buttonIndex === 1) onSelect(pdf); // Open
         if (buttonIndex === 2 && onOCR) onOCR(pdf);
         if (buttonIndex === 3 && onShare) onShare(pdf);
-        if (buttonIndex === 4 && onDelete) onDelete(pdf);
+        if (buttonIndex === 4 && onDelete) {
+          Alert.alert(
+            'Delete PDF',
+            'Are you sure you want to delete this PDF?',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete', style: 'destructive', onPress: () => onDelete(pdf) },
+            ]
+          );
+        }
       });
     } else {
       setModalPDF(pdf);
@@ -66,57 +75,64 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
     if (action === 'open') onSelect(modalPDF);
     if (action === 'ocr' && onOCR) onOCR(modalPDF);
     if (action === 'share' && onShare) onShare(modalPDF);
-    if (action === 'delete' && onDelete) onDelete(modalPDF);
+    if (action === 'delete' && onDelete) {
+      // Show confirmation dialog before deleting
+      Alert.alert(
+        'Delete PDF',
+        'Are you sure you want to delete this PDF?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => onDelete(modalPDF) },
+        ]
+      );
+    }
     setModalVisible(false);
     setModalPDF(null);
   };
-  const renderItem = ({ item }: { item: PDFDocument }) => (
-    <TouchableOpacity
-      style={[
-        styles.item,
-        { backgroundColor: 'transparent', borderColor: selectedPDF?.uri === item.uri ? colors.primary : 'transparent' },
-      ]}
-      onPress={() => onSelect(item)}
-      accessibilityLabel={`Select PDF: ${item.name}`}
-    >
-      <View style={styles.row}>
-        {/* PDF Icon with PDF text */}
-        <View style={styles.iconContainer}>
-          <View style={styles.pdfIconWrap}>
-            <FileText size={28} color={colors.error} fill={colors.error} />
-            <Text style={styles.pdfLabel}>PDF</Text>
-          </View>
-        </View>
-        <View style={styles.infoContainer}>
-          <Text style={[styles.name, { color: colors.text, fontSize: fontSize.medium }]} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
-          <Text style={[styles.meta, { color: colors.textSecondary, fontSize: fontSize.small }]}
-            numberOfLines={1} ellipsizeMode="tail">
-            {formatDate(item.date)}
-            {', '}{formatFileSize(item.size)}
-            {', PDF document'}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.actionContainer}
-          onPress={() => showOptions(item)}
-          accessibilityLabel={`More options for ${item.name}`}
-        >
-          <MoreVertical size={22} color={colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
   return (
     <View style={[styles.container, { backgroundColor: 'transparent' }]}> {/* No background color */}
       <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium }]}>Recent files</Text>
-      <FlatList
-        data={pdfs}
-        keyExtractor={item => item.uri}
-        renderItem={renderItem}
-        ItemSeparatorComponent={() => <View style={[styles.separator, { borderBottomColor: colors.border }]} />}
-        contentContainerStyle={{ gap: 0 }}
-        showsVerticalScrollIndicator={false}
-      />
+      <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ gap: 0 }} showsVerticalScrollIndicator={false}>
+        {pdfs.map((item, idx) => (
+          <React.Fragment key={item.uri}>
+            <TouchableOpacity
+              style={[
+                styles.item,
+                { backgroundColor: 'transparent', borderColor: selectedPDF?.uri === item.uri ? colors.primary : 'transparent' },
+              ]}
+              onPress={() => onSelect(item)}
+              accessibilityLabel={`Select PDF: ${item.name}`}
+            >
+              <View style={styles.row}>
+                {/* PDF Icon with PDF text */}
+                <View style={styles.iconContainer}>
+                  <View style={styles.pdfIconWrap}>
+                    <FileText size={28} color={colors.error} fill={colors.error} />
+                    <Text style={styles.pdfLabel}>PDF</Text>
+                  </View>
+                </View>
+                <View style={styles.infoContainer}>
+                  <Text style={[styles.name, { color: colors.text, fontSize: fontSize.medium }]} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
+                  <Text style={[styles.meta, { color: colors.textSecondary, fontSize: fontSize.small }]}
+                    numberOfLines={1} ellipsizeMode="tail">
+                    {`${formatDate(item.date)}, ${formatFileSize(item.size)}, PDF document`}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.actionContainer}
+                  onPress={() => showOptions(item)}
+                  accessibilityLabel={`More options for ${item.name}`}
+                >
+                  <MoreVertical size={22} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+            {idx < pdfs.length - 1 && (
+              <View style={[styles.separator, { borderBottomColor: colors.border }]} />
+            )}
+          </React.Fragment>
+        ))}
+      </ScrollView>
       {/* Android Modal for options */}
       {Platform.OS !== 'ios' && (
         <Modal

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { FileText, Upload, Volume2, VolumeX, Play, Pause, Square } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { AppHeader } from '../../components/AppHeader';
@@ -17,6 +18,7 @@ import { TTSService } from '@/services/TTSService';
 import { LoadingModal } from '@/components/LoadingModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PDFListSection } from '../../components/PDFListSection';
+import Pdf from 'react-native-pdf';
 
 interface PDFDocument {
   uri: string;
@@ -26,7 +28,7 @@ interface PDFDocument {
   extractedText?: string;
 }
 
-export default function PDFScreen() {
+function PDFScreen() {
   const { colors, fontSize } = useTheme();
   const [selectedPDF, setSelectedPDF] = useState<PDFDocument | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,13 +70,20 @@ export default function PDFScreen() {
 
       if (!result.canceled && result.assets[0]) {
         const asset = result.assets[0];
+        const localUri = asset.uri;
+        if (typeof localUri !== 'string' || !localUri) {
+          Alert.alert('Error', 'No file URI found for the selected PDF.');
+          return;
+        }
+        const fileName = asset.name ? asset.name : `pdf_${Date.now()}.pdf`;
+        let finalUri = localUri; // Now always a string
+        // For Expo Go, we cannot use react-native-pdf, so just use the uri as is for WebView
         const pdfDoc: PDFDocument = {
-          uri: asset.uri,
-          name: asset.name,
+          uri: finalUri,
+          name: fileName,
           size: asset.size || 0,
           date: new Date().toISOString(), // Add current date
         };
-        
         setSelectedPDF(pdfDoc);
         await extractTextFromPDF(pdfDoc);
         setPdfList(prev => [pdfDoc, ...prev.filter(p => p.uri !== pdfDoc.uri)]);
@@ -87,13 +96,10 @@ export default function PDFScreen() {
   const extractTextFromPDF = async (pdf: PDFDocument) => {
     try {
       setIsLoading(true);
-      
       // Note: In a real implementation, you would use a PDF text extraction library
       // For this demo, we'll simulate text extraction
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
       const mockExtractedText = `Sample PDF content from ${pdf.name}. This is demonstration text that would normally be extracted from the PDF document. The text would include all readable content from the PDF file, which could then be read aloud using text-to-speech functionality.`;
-      
       setSelectedPDF(prev => prev ? { ...prev, extractedText: mockExtractedText } : null);
     } catch (error) {
       Alert.alert('Error', 'Failed to extract text from PDF');
@@ -104,7 +110,6 @@ export default function PDFScreen() {
 
   const handlePlayPause = async () => {
     if (!selectedPDF?.extractedText) return;
-
     try {
       if (isPlaying) {
         await TTSService.stop();
@@ -143,36 +148,54 @@ export default function PDFScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
-      {/* Header removed, now handled globally */}
-      <ScrollView 
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        accessible={true}
-        accessibilityLabel="PDF viewer content"
-      >
-        <PDFListSection pdfs={pdfList} onSelect={handlePDFSelect} selectedPDF={selectedPDF} />
-        <View style={styles.emptyState}>
-          <TouchableOpacity
-            onPress={pickPDF}
-            accessibilityLabel="Import PDF document"
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 36,
-              backgroundColor: colors.primary,
-              justifyContent: 'center',
-              alignItems: 'center',
-              shadowColor: '#000',
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 4,
+      {/* PDF Viewer Fullscreen */}
+      {selectedPDF ? (
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+            <TouchableOpacity onPress={() => setSelectedPDF(null)} accessibilityLabel="Back to PDF list" style={{ marginRight: 16, padding: 8 }}>
+              <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: fontSize.large }}>{'<'} Back</Text>
+            </TouchableOpacity>
+            <Text style={{ color: colors.text, fontWeight: '600', fontSize: fontSize.large }} numberOfLines={1}>{selectedPDF.name}</Text>
+          </View>
+          <Pdf
+            source={{ uri: selectedPDF.uri }}
+            style={{ flex: 1, backgroundColor: colors.background }}
+            onError={(error) => {
+              Alert.alert('PDF Error', (error as any).message || String(error));
             }}
-          >
-            <Text style={{ color: colors.onPrimary, fontSize: 48, fontWeight: 'bold', marginTop: -4 }}>+</Text>
-          </TouchableOpacity>
+            trustAllCerts={false} // set to true only for testing with self-signed certs
+          />
         </View>
-      </ScrollView>
-
+      ) : (
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          accessible={true}
+          accessibilityLabel="PDF viewer content"
+        >
+          <PDFListSection pdfs={pdfList} onSelect={setSelectedPDF} selectedPDF={selectedPDF} />
+          <View style={styles.emptyState}>
+            <TouchableOpacity
+              onPress={pickPDF}
+              accessibilityLabel="Import PDF document"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: colors.primary,
+                justifyContent: 'center',
+                alignItems: 'center',
+                shadowColor: '#000',
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 4,
+              }}
+            >
+              <Text style={{ color: colors.onPrimary, fontSize: 48, fontWeight: 'bold', marginTop: -4 }}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      )}
       <LoadingModal 
         visible={isLoading} 
         text="Extracting text from PDF..."
@@ -180,6 +203,8 @@ export default function PDFScreen() {
     </SafeAreaView>
   );
 }
+
+export default PDFScreen;
 
 const styles = StyleSheet.create({
   container: {
