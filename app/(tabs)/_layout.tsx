@@ -21,10 +21,20 @@ export function useOCRScanner() {
   return useContext(OCRScannerContext);
 }
 
+export const PDFViewerContext = createContext({
+  pdfOpen: false,
+  setPdfOpen: (open: boolean) => {},
+});
+
+export function usePDFViewer() {
+  return useContext(PDFViewerContext);
+}
+
 function TabHeader() {
   const segments = useSegments();
   const { cameraActive } = useOCRScanner();
-  if (cameraActive) return null;
+  const { pdfOpen } = usePDFViewer();
+  if (cameraActive || pdfOpen) return null;
   const tab = [...segments].reverse().find(seg => seg in TAB_TITLES) || 'gallery';
   const title = TAB_TITLES[tab] || '';
   return <AppHeader title={title} />;
@@ -33,77 +43,80 @@ function TabHeader() {
 export default function TabLayout() {
   const { colors } = useTheme();
   const [cameraActive, setCameraActive] = useState(false);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   return (
-    <OCRScannerContext.Provider value={{ cameraActive, setCameraActive }}>
-      <View style={{ flex: 1 }}>
-        <TabHeader />
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          height: 80,
-          paddingBottom: 20,
-          paddingTop: 8,
-              display: cameraActive ? 'none' : 'flex',
-        },
-        tabBarLabelStyle: {
-          fontSize: 14,
-          fontWeight: '600',
-          marginTop: 4,
-        },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
-      }}>
-      <Tabs.Screen
-        name="gallery"
-        options={{
-          title: 'Gallery',
-          tabBarIcon: ({ size, color }) => (
-            <View 
-              accessible={true}
-              accessibilityLabel="Gallery tab"
-              accessibilityRole="button"
-            >
-              <Gallery size={size} color={color} strokeWidth={2.5} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="camera"
-        options={{
-          title: 'Camera',
-          tabBarIcon: ({ size, color }) => (
-            <View 
-              accessible={true}
-              accessibilityLabel="Camera tab"
-              accessibilityRole="button"
-            >
-              <Camera size={size} color={color} strokeWidth={2.5} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="pdf"
-        options={{
-          title: 'PDF',
-          tabBarIcon: ({ size, color }) => (
-            <View 
-              accessible={true}
-              accessibilityLabel="PDF viewer tab"
-              accessibilityRole="button"
-            >
-              <FileText size={size} color={color} strokeWidth={2.5} />
-            </View>
-          ),
-        }}
-      />
-    </Tabs>
-      </View>
-    </OCRScannerContext.Provider>
+    <PDFViewerContext.Provider value={{ pdfOpen, setPdfOpen }}>
+      <OCRScannerContext.Provider value={{ cameraActive, setCameraActive }}>
+        <View style={{ flex: 1 }}>
+          {!pdfOpen && <TabHeader />}
+          <Tabs
+            screenOptions={{
+              headerShown: false,
+              tabBarStyle: {
+                backgroundColor: colors.surface,
+                borderTopColor: colors.border,
+                height: 80,
+                paddingBottom: 20,
+                paddingTop: 8,
+                display: cameraActive || pdfOpen ? 'none' : 'flex',
+              },
+              tabBarLabelStyle: {
+                fontSize: 14,
+                fontWeight: '600',
+                marginTop: 4,
+              },
+              tabBarActiveTintColor: colors.primary,
+              tabBarInactiveTintColor: colors.textSecondary,
+            }}>
+            <Tabs.Screen
+              name="gallery"
+              options={{
+                title: 'Gallery',
+                tabBarIcon: ({ size, color }) => (
+                  <View 
+                    accessible={true}
+                    accessibilityLabel="Gallery tab"
+                    accessibilityRole="button"
+                  >
+                    <Gallery size={size} color={color} strokeWidth={2.5} />
+                  </View>
+                ),
+              }}
+            />
+            <Tabs.Screen
+              name="camera"
+              options={{
+                title: 'Camera',
+                tabBarIcon: ({ size, color }) => (
+                  <View 
+                    accessible={true}
+                    accessibilityLabel="Camera tab"
+                    accessibilityRole="button"
+                  >
+                    <Camera size={size} color={color} strokeWidth={2.5} />
+                  </View>
+                ),
+              }}
+            />
+            <Tabs.Screen
+              name="pdf"
+              options={{
+                title: 'PDF',
+                tabBarIcon: ({ size, color }) => (
+                  <View 
+                    accessible={true}
+                    accessibilityLabel="PDF viewer tab"
+                    accessibilityRole="button"
+                  >
+                    <FileText size={size} color={color} strokeWidth={2.5} />
+                  </View>
+                ),
+              }}
+            />
+          </Tabs>
+        </View>
+      </OCRScannerContext.Provider>
+    </PDFViewerContext.Provider>
   );
 }

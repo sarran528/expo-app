@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import { FileText, Upload, Volume2, VolumeX, Play, Pause, Square } from 'lucide-react-native';
+import { FileText, Upload, Volume2, VolumeX, Play, Pause, Square, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { AppHeader } from '../../components/AppHeader';
 import { AccessibleButton } from '@/components/AccessibleButton';
@@ -19,6 +19,7 @@ import { LoadingModal } from '@/components/LoadingModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PDFListSection } from '../../components/PDFListSection';
 import Pdf from 'react-native-pdf';
+import { usePDFViewer } from './_layout';
 
 interface PDFDocument {
   uri: string;
@@ -35,6 +36,7 @@ function PDFScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [pdfList, setPdfList] = useState<PDFDocument[]>([]);
+  const { setPdfOpen } = usePDFViewer();
 
   // Load PDFs from storage on mount
   useEffect(() => {
@@ -56,6 +58,11 @@ function PDFScreen() {
   useEffect(() => {
     AsyncStorage.setItem('uploadedPDFs', JSON.stringify(pdfList));
   }, [pdfList]);
+
+  useEffect(() => {
+    setPdfOpen(!!selectedPDF);
+    return () => setPdfOpen(false);
+  }, [selectedPDF]);
 
   const handlePDFSelect = (pdf: PDFDocument) => {
     setSelectedPDF(pdf);
@@ -84,9 +91,27 @@ function PDFScreen() {
           size: asset.size || 0,
           date: new Date().toISOString(), // Add current date
         };
-        setSelectedPDF(pdfDoc);
+        Alert.alert(
+          "Open PDF",
+          "Do you want to open this PDF?",
+          [
+            {
+              text: "No",
+              onPress: () => {
+                setPdfList(prev => [pdfDoc, ...prev.filter(p => p.uri !== pdfDoc.uri)]);
+              },
+              style: "cancel"
+            },
+            {
+              text: "Yes",
+              onPress: () => {
+                setPdfList(prev => [pdfDoc, ...prev.filter(p => p.uri !== pdfDoc.uri)]);
+                setSelectedPDF(pdfDoc);
+              }
+            }
+          ]
+        );
         await extractTextFromPDF(pdfDoc);
-        setPdfList(prev => [pdfDoc, ...prev.filter(p => p.uri !== pdfDoc.uri)]);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to pick PDF document');
@@ -150,20 +175,57 @@ function PDFScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
       {/* PDF Viewer Fullscreen */}
       {selectedPDF ? (
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <TouchableOpacity onPress={() => setSelectedPDF(null)} accessibilityLabel="Back to PDF list" style={{ marginRight: 16, padding: 8 }}>
-              <Text style={{ color: colors.primary, fontWeight: 'bold', fontSize: fontSize.large }}>{'<'} Back</Text>
+        <View style={{ flex: 1, backgroundColor: colors.background , paddingTop: -20 }}>
+          {/* Top bar */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingTop: 18,
+              paddingBottom: 12,
+              paddingHorizontal: 12,
+              backgroundColor: colors.background,
+              height: 64, // Fixed height for the top bar
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setSelectedPDF(null)}
+              accessibilityLabel="Go back"
+              style={{
+                width: 40,
+                height: 40,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: 20,
+                backgroundColor: colors.surface,
+                elevation: 2,
+                marginRight: 12,
+                
+              }}
+            >
+              <ArrowLeft size={28} color={colors.primary} />
             </TouchableOpacity>
-            <Text style={{ color: colors.text, fontWeight: '600', fontSize: fontSize.large }} numberOfLines={1}>{selectedPDF.name}</Text>
+            <Text
+              style={{
+                color: colors.text,
+                fontWeight: '600',
+                fontSize: fontSize.large,
+                flexShrink: 1,
+              }}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {selectedPDF.name}
+            </Text>
           </View>
+          {/* PDF fills the rest */}
           <Pdf
             source={{ uri: selectedPDF.uri }}
-            style={{ flex: 1, backgroundColor: colors.background }}
+            style={{ flex: 1, backgroundColor: colors.background ,height: 180}}
             onError={(error) => {
               Alert.alert('PDF Error', (error as any).message || String(error));
             }}
-            trustAllCerts={false} // set to true only for testing with self-signed certs
+            trustAllCerts={false}
           />
         </View>
       ) : (
@@ -173,7 +235,7 @@ function PDFScreen() {
           accessible={true}
           accessibilityLabel="PDF viewer content"
         >
-          <PDFListSection pdfs={pdfList} onSelect={setSelectedPDF} selectedPDF={selectedPDF} />
+          <PDFListSection pdfs={pdfList} onSelect={handlePDFSelect} selectedPDF={selectedPDF} />
           <View style={styles.emptyState}>
             <TouchableOpacity
               onPress={pickPDF}
@@ -189,6 +251,7 @@ function PDFScreen() {
                 shadowOpacity: 0.1,
                 shadowRadius: 8,
                 elevation: 4,
+                marginTop: 200,
               }}
             >
               <Text style={{ color: colors.onPrimary, fontSize: 48, fontWeight: 'bold', marginTop: -4 }}>+</Text>
@@ -225,7 +288,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontWeight: '700',
-    marginTop: 24,
+    marginTop: 20,
     marginBottom: 8,
     textAlign: 'center',
   },
