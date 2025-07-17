@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Speech from 'expo-speech';
 import { Settings, Volume2, User, Moon, Bell, Mic, Languages, CircleHelp as HelpCircle, Shield, Trash2, ChevronRight, Type, Key, Eye } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { Header } from '@/components/Header';
+import { AppHeader } from '@/components/AppHeader';
 import { AccessibleButton } from '@/components/AccessibleButton';
 import { TTSService } from '@/services/TTSService';
 
@@ -292,7 +292,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title="Settings" />
+      <AppHeader title="Settings" showMenu={false} compact={true} />
       
       <Animated.ScrollView 
         contentContainerStyle={styles.content}

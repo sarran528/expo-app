@@ -7,9 +7,10 @@ import { useRouter } from 'expo-router';
 interface AppHeaderProps {
   title: string;
   showMenu?: boolean;
+  compact?: boolean;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true }) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, compact = false }) => {
   const { colors, fontSize } = useTheme();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -62,9 +63,21 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true }) 
 
   return (
     <>
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}> 
+      <View style={[
+        styles.header,
+        compact ? { paddingTop: 8, paddingBottom: 8, paddingHorizontal: 12 } : {},
+        { backgroundColor: colors.surface, borderBottomColor: colors.border }
+      ]}>
         <View style={styles.headerContent}>
-          <Text style={[styles.title, { color: colors.text, fontSize: fontSize.xlarge }]} accessibilityRole="header" accessibilityLabel={`${title} screen`}>
+          <Text
+            style={[
+              styles.title,
+              compact ? { fontSize: fontSize.large, marginTop: 0 } : { fontSize: fontSize.xlarge },
+              { color: colors.text }
+            ]}
+            accessibilityRole="header"
+            accessibilityLabel={`${title} screen`}
+          >
             {title}
           </Text>
           {showMenu && (
