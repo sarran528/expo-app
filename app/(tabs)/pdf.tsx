@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { FileText, Upload, Volume2, VolumeX, Play, Pause, Square, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { AppHeader } from '../../components/AppHeader';
@@ -37,6 +38,8 @@ function PDFScreen() {
   const [isMuted, setIsMuted] = useState(false);
   const [pdfList, setPdfList] = useState<PDFDocument[]>([]);
   const { setPdfOpen } = usePDFViewer();
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Load PDFs from storage on mount
   useEffect(() => {
@@ -179,6 +182,42 @@ function PDFScreen() {
     if (selectedPDF?.uri === pdf.uri) setSelectedPDF(null);
   };
 
+  const handleSharePDF = async (pdf: PDFDocument) => {
+    try {
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert('Sharing not available on this device');
+        return;
+      }
+      await Sharing.shareAsync(pdf.uri, {
+        mimeType: 'application/pdf',
+        dialogTitle: `Share ${pdf.name}`,
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share PDF');
+    }
+  };
+
+  const handleSort = (by: 'name' | 'date' | 'size') => {
+    if (sortBy === by) {
+      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(by);
+      setSortOrder('asc');
+    }
+  };
+
+  const sortedPDFs = [...pdfList].sort((a, b) => {
+    let cmp = 0;
+    if (sortBy === 'name') {
+      cmp = a.name.localeCompare(b.name);
+    } else if (sortBy === 'date') {
+      cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
+    } else if (sortBy === 'size') {
+      cmp = a.size - b.size;
+    }
+    return sortOrder === 'asc' ? cmp : -cmp;
+  });
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -251,7 +290,15 @@ function PDFScreen() {
           accessible={true}
           accessibilityLabel="PDF viewer content"
         >
-          <PDFListSection pdfs={pdfList} onSelect={handlePDFSelect} selectedPDF={selectedPDF} onDelete={handleDeletePDF} />
+          <PDFListSection
+            pdfs={sortedPDFs}
+            onSelect={handlePDFSelect}
+            selectedPDF={selectedPDF}
+            onDelete={handleDeletePDF}
+            onShare={handleSharePDF}
+            onSort={handleSort}
+            onInvertSort={() => setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}
+          />
           <View style={styles.emptyState}>
             <TouchableOpacity
               onPress={pickPDF}

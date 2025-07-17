@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActionSheetIOS, Platform, Modal, Alert, ScrollView } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { FileText, MoreVertical } from 'lucide-react-native';
+import * as Sharing from 'expo-sharing';
 
 interface PDFDocument {
   uri: string;
@@ -18,12 +19,15 @@ interface PDFListSectionProps {
   onDelete?: (pdf: PDFDocument) => void;
   onOCR?: (pdf: PDFDocument) => void;
   onShare?: (pdf: PDFDocument) => void;
+  onSort?: (by: 'name' | 'date' | 'size') => void;
+  onInvertSort?: () => void;
 }
 
-export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, selectedPDF, onDelete, onOCR, onShare }) => {
+export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, selectedPDF, onDelete, onOCR, onShare, onSort, onInvertSort }) => {
   const { colors, fontSize } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalPDF, setModalPDF] = useState<PDFDocument | null>(null);
+  const [sortModalVisible, setSortModalVisible] = useState(false);
 
   if (!pdfs.length) return null;
   const formatFileSize = (bytes: number): string => {
@@ -89,9 +93,34 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
     setModalVisible(false);
     setModalPDF(null);
   };
+
+  const handleSharePDF = async (pdf: PDFDocument) => {
+    try {
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert('Sharing not available on this device');
+        return;
+      }
+      await Sharing.shareAsync(pdf.uri, {
+        mimeType: 'application/pdf',
+        dialogTitle: `Share ${pdf.name}`,
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share PDF');
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: 'transparent' }]}> {/* No background color */}
-      <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium }]}>Recent files</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium }]}>Recent files</Text>
+        <TouchableOpacity
+          onPress={() => setSortModalVisible(true)}
+          style={{ padding: 4 }}
+          accessibilityLabel="Sort PDFs"
+        >
+          <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Sort</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ gap: 0 }} showsVerticalScrollIndicator={false}>
         {pdfs.map((item, idx) => (
           <React.Fragment key={item.uri}>
@@ -159,6 +188,43 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
           </TouchableOpacity>
         </Modal>
       )}
+      {/* Sort Modal */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setSortModalVisible(false)}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            {['name', 'date', 'size'].map((by) => (
+              <TouchableOpacity
+                key={by}
+                style={styles.modalOption}
+                onPress={() => {
+                  onSort && onSort(by as 'name' | 'date' | 'size');
+                  setSortModalVisible(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, { color: colors.text }]}>
+                  Sort by {by.charAt(0).toUpperCase() + by.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                onInvertSort && onInvertSort();
+                setSortModalVisible(false);
+              }}
+            >
+              <Text style={[styles.modalOptionText, { color: colors.text }]}>
+                Invert Order
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
