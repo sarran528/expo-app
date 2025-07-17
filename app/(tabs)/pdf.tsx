@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { FileText, Upload, Volume2, VolumeX, Play, Pause, Square, ArrowLeft } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
@@ -134,25 +133,9 @@ function PDFScreen() {
             }
           ]
         );
-        await extractTextFromPDF(pdfDoc);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to pick PDF document');
-    }
-  };
-
-  const extractTextFromPDF = async (pdf: PDFDocument) => {
-    try {
-      setIsLoading(true);
-      // Note: In a real implementation, you would use a PDF text extraction library
-      // For this demo, we'll simulate text extraction
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const mockExtractedText = `Sample PDF content from ${pdf.name}. This is demonstration text that would normally be extracted from the PDF document. The text would include all readable content from the PDF file, which could then be read aloud using text-to-speech functionality.`;
-      setSelectedPDF(prev => prev ? { ...prev, extractedText: mockExtractedText } : null);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to extract text from PDF');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -192,12 +175,6 @@ function PDFScreen() {
     // Remove from AsyncStorage
     const updatedList = pdfList.filter(p => p.uri !== pdf.uri);
     await AsyncStorage.setItem('uploadedPDFs', JSON.stringify(updatedList));
-    // (Optional) Delete the file from the file system if you want:
-    // try {
-    //   await FileSystem.deleteAsync(pdf.uri, { idempotent: true });
-    // } catch (e) {
-    //   // Handle error or ignore if file doesn't exist
-    // }
     // If the deleted PDF was open, close it
     if (selectedPDF?.uri === pdf.uri) setSelectedPDF(null);
   };
