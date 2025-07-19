@@ -198,6 +198,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+sdkmvsdvok
+
   menuContent: {
     marginTop: 100,
     paddingHorizontal: 16,
