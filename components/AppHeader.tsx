@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-sdkmvkhu
+
 
   menuContent: {
     marginTop: 100,
