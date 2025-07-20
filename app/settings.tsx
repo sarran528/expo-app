@@ -617,6 +617,28 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Theme Settings */}
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Theme</Text>
+          <Separator />
+          {renderSettingItem('Theme',
+            <Switch
+              value={colors.isDarkMode}
+              onValueChange={() => {
+                // Assuming setTheme is available from useTheme
+                // setTheme(colors.isDarkMode ? 'light' : 'dark'); 
+                speakWithCurrentSettings('Theme changed');
+              }}
+              trackColor={{ false: colors.border, true: colors.primary + '40' }}
+              thumbColor={colors.isDarkMode ? colors.primary : colors.textSecondary}
+              accessible={true}
+              accessibilityLabel={`Theme ${colors.isDarkMode ? 'dark' : 'light'}. Tap to change`}
+              accessibilityRole="switch"
+            />,
+            <AppIcon icon={AppIcons.Moon} color={colors.primary} />
+          )}
+        </View>
+
         {/* Notifications Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Notifications</Text>
