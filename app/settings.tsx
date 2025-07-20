@@ -24,7 +24,7 @@ import { Settings, Volume2, User, Moon, Bell, Mic, Languages, CircleHelp as Help
 import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
-  const { colors, fontSize, textSize, setTextSize } = useTheme();
+  const { colors, fontSize, textSize, setTextSize, theme, setTheme } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { iconSize, setIconSize } = useIconSize();
@@ -622,20 +622,21 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Theme</Text>
           <Separator />
           {renderSettingItem('Theme',
-            <Switch
-              value={colors.isDarkMode}
-              onValueChange={() => {
-                // Assuming setTheme is available from useTheme
-                // setTheme(colors.isDarkMode ? 'light' : 'dark'); 
-                speakWithCurrentSettings('Theme changed');
-              }}
-              trackColor={{ false: colors.border, true: colors.primary + '40' }}
-              thumbColor={colors.isDarkMode ? colors.primary : colors.textSecondary}
-              accessible={true}
-              accessibilityLabel={`Theme ${colors.isDarkMode ? 'dark' : 'light'}. Tap to change`}
-              accessibilityRole="switch"
-            />,
-            <AppIcon icon={AppIcons.Moon} color={colors.primary} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+              <Text style={{ color: colors.textSecondary, fontSize: fontSize.small[textSize] }}>
+                {theme === 'dark' ? 'Theme: Dark' : 'Theme: Light'}
+              </Text>
+              <Switch
+                value={theme === 'dark'}
+                onValueChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                trackColor={{ false: colors.border, true: colors.primary + '40' }}
+                thumbColor={theme === 'dark' ? colors.primary : colors.textSecondary}
+                accessible={true}
+                accessibilityLabel={`Theme ${theme === 'dark' ? 'dark' : 'light'}. Tap to change`}
+                accessibilityRole="switch"
+              />
+            </View>,
+            <AppIcon icon={theme === 'dark' ? AppIcons.Moon : AppIcons.Settings} color={colors.primary} />
           )}
         </View>
 

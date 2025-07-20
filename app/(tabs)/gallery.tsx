@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { AppIcon, AppIcons } from '@/components/AppIcon';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AppHeader } from '@/components/headers/AppHeader';
 import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { ImageModal } from '@/components/modals/ImageModal';
@@ -41,7 +41,7 @@ export default function GalleryScreen() {
 
   useEffect(() => {
     loadImages();
-  }, []);
+  }, []); // Only on mount
 
   const loadImages = async () => {
     try {
@@ -169,7 +169,7 @@ export default function GalleryScreen() {
         accessible={false}
       />
       <Text 
-        style={[styles.imageTitle, { color: colors.text, fontSize: fontSize.small }]}
+        style={[styles.imageTitle, { color: colors.text, fontSize: fontSize.small[1] }]}
         numberOfLines={1}
       >
         {item.filename}
@@ -181,7 +181,7 @@ export default function GalleryScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.centered}>
-          <Text style={[styles.loadingText, { color: colors.text, fontSize: fontSize.large }]}>
+          <Text style={[styles.loadingText, { color: colors.text, fontSize: fontSize.large[1] }]}>
             Loading images...
           </Text>
         </View>
@@ -192,7 +192,7 @@ export default function GalleryScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}> 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, paddingHorizontal: 16 }}>
-        <Text style={{ color: colors.text, fontWeight: '600', fontSize: fontSize.medium }}>
+        <Text style={{ color: colors.text, fontWeight: '600', fontSize: fontSize.medium[1] }}>
           {getSortLabel(sortBy, sortOrder) || ' '}
         </Text>
         <TouchableOpacity onPress={() => setSortModalVisible(true)} style={{ padding: 4 }} accessibilityLabel="Sort Images">
@@ -201,10 +201,10 @@ export default function GalleryScreen() {
       </View>
       {sortedImages.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: fontSize.large }]}>
+          <Text style={[styles.emptyText, { color: colors.textSecondary, fontSize: fontSize.large[1] }]}>
             No images found
           </Text>
-          <Text style={[styles.emptySubtext, { color: colors.textSecondary, fontSize: fontSize.medium }]}>
+          <Text style={[styles.emptySubtext, { color: colors.textSecondary, fontSize: fontSize.medium[1] }]}>
             Take some photos with the camera to see them here
           </Text>
         </View>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
 import { OCRScanner } from '@/components/documents/OCRScanner';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { useOCRScanner } from './_layout';
 import { useFocusEffect } from 'expo-router';
@@ -20,7 +20,7 @@ export default function CameraTabScreen() {
     setCameraActive(false);
   };
 
-  // Ensure cameraActive is reset when leaving the tab or unmounting
+  // Ensure useFocusEffect for cameraActive only depends on setCameraActive (not theme/colors).
   useFocusEffect(
     React.useCallback(() => {
       // On focus: do nothing
@@ -42,13 +42,13 @@ export default function CameraTabScreen() {
         />
       ) : (
         <View style={styles.placeholderContainer}>
-          <Text style={[styles.placeholderText, { color: colors.text, fontSize: fontSize.large }]}>OCR Scanner Closed</Text>
-          <Text style={[styles.placeholderSubtext, { color: colors.textSecondary, fontSize: fontSize.medium }]}>Tap below to start scanning again.</Text>
+          <Text style={[styles.placeholderText, { color: colors.text, fontSize: fontSize.large[1] }]}>OCR Scanner Closed</Text>
+          <Text style={[styles.placeholderSubtext, { color: colors.textSecondary, fontSize: fontSize.medium[1] }]}>Tap below to start scanning again.</Text>
           <AccessibleButton
             title="Open OCR Scanner"
             onPress={openScanner}
             style={[styles.openButton, { backgroundColor: colors.primary }] as any}
-            textStyle={{ color: colors.onPrimary, fontSize: fontSize.large }}
+            textStyle={{ color: colors.onPrimary, fontSize: fontSize.large[1] }}
             accessibilityLabel="Open OCR scanner"
           />
         </View>

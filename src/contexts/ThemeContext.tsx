@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Appearance } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define color palettes for light and dark themes
 const lightColors = {
@@ -26,15 +27,12 @@ const darkColors = {
   onError: '#18181B',
 };
 
-// 1. Add textSize (0=small, 1=medium, 2=large) and setTextSize to the context state.
-// 2. fontSize values should be mapped based on textSize: e.g.,
-//    small: [13, 15, 17], medium: [15, 17, 20], large: [18, 20, 24] (or similar)
-// 3. Remove any fontScale logic.
-// 4. Update ThemeContextProps and ThemeProvider accordingly.
+// Reduce all font sizes to more moderate values for better performance and usability.
+// Use: small: [14, 16, 18], medium: [16, 18, 20], large: [18, 20, 22]
 const fontSize = {
-  small:  [18, 24, 32],   // [small, medium, large]
-  medium: [22, 30, 40],   // [small, medium, large]
-  large:  [26, 36, 48],   // [small, medium, large]
+  small:  [14, 16, 18],   // [small, medium, large]
+  medium: [16, 18, 20],   // [small, medium, large]
+  large:  [18, 20, 22],   // [small, medium, large]
 };
 
 export type ThemeType = 'light' | 'dark';
@@ -52,8 +50,22 @@ const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemTheme = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
-  const [theme, setTheme] = useState<ThemeType>(systemTheme);
+  const [theme, setThemeState] = useState<ThemeType>(systemTheme);
   const [textSize, setTextSize] = useState<number>(1); // Default to medium
+
+  useEffect(() => {
+    (async () => {
+      const savedTheme = await AsyncStorage.getItem('theme');
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        setThemeState(savedTheme);
+      }
+    })();
+  }, []);
+
+  const setTheme = async (newTheme: ThemeType) => {
+    setThemeState(newTheme);
+    await AsyncStorage.setItem('theme', newTheme);
+  };
 
   const value: ThemeContextProps = {
     theme,

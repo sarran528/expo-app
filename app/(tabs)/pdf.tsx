@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { FileText, Upload, Volume2, VolumeX, Play, Pause, Square, ArrowLeft } from 'lucide-react-native';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AppHeader } from '@/components/headers/AppHeader';
 import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { TTSService } from '@/services/TTSService';
@@ -42,7 +42,7 @@ function PDFScreen() {
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Load PDFs from storage on mount
+  // Fix: Only load PDFs from AsyncStorage on mount, not on theme change.
   useEffect(() => {
     (async () => {
       const stored = await AsyncStorage.getItem('uploadedPDFs');
@@ -56,7 +56,7 @@ function PDFScreen() {
         setPdfList(withDate);
       }
     })();
-  }, []);
+  }, []); // Only on mount
 
   // Save PDFs to storage when pdfList changes
   useEffect(() => {
@@ -261,7 +261,7 @@ function PDFScreen() {
               style={{
                 color: colors.text,
                 fontWeight: '600',
-                fontSize: fontSize.large,
+                fontSize: fontSize.large[1],
                 flexShrink: 1,
               }}
               numberOfLines={1}

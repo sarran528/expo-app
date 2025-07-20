@@ -1,7 +1,7 @@
 import { Tabs, useSegments } from 'expo-router';
 import { View } from 'react-native';
 import { AppIcon, AppIcons } from '@/components/AppIcon';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AppHeader } from '@/components/headers/AppHeader';
 import React, { createContext, useContext, useState } from 'react';
 
@@ -40,7 +40,7 @@ function TabHeader() {
   return <AppHeader title={title} />;
 }
 
-export default function TabLayout() {
+export default function TabsLayout() {
   const { colors } = useTheme();
   const [cameraActive, setCameraActive] = useState(false);
   const [pdfOpen, setPdfOpen] = useState(false);
