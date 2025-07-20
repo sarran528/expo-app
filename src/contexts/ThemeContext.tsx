@@ -32,9 +32,9 @@ const darkColors = {
 // 3. Remove any fontScale logic.
 // 4. Update ThemeContextProps and ThemeProvider accordingly.
 const fontSize = {
-  small: [13, 15, 17],
-  medium: [15, 17, 20],
-  large: [18, 20, 24],
+  small: [17, 19, 21],
+  medium: [18, 20, 23],
+  large: [20, 22, 26],
 };
 
 export type ThemeType = 'light' | 'dark';

@@ -395,50 +395,16 @@ export default function SettingsScreen() {
             <>
             <Separator />
               {renderSettingItem('Speed', 
-                <View style={styles.sliderContainer}>
-                  <Slider
-                    value={speechRate}
-                    onValueChange={handleSpeechRateChange}
-                    onSlidingComplete={handleSpeechRateComplete}
-                    minimumValue={0.3}
-                    maximumValue={1.0}
-                    step={0.05}
-                    minimumTrackTintColor={colors.primary}
-                    maximumTrackTintColor={colors.border}
-                    thumbTintColor={colors.primary}
-                    style={styles.slider}
-                    accessible={true}
-                    accessibilityLabel={`Speech rate: ${speechRate.toFixed(2)} times normal`}
-                    accessibilityRole="adjustable"
-                  />
-                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}> 
-                    {speechRate.toFixed(1)}x
-                  </Text>
-                </View>,
+                <Text style={{ color: colors.textSecondary, fontSize: fontSize.small[textSize], marginLeft: 16 }}>
+                 
+                </Text>,
                 <AppIcon icon={AppIcons.Zap} color={colors.primary} />
               )}
               <Separator />
               {renderSettingItem('Pitch', 
-                <View style={styles.sliderContainer}>
-                  <Slider
-                    value={speechPitch}
-                    onValueChange={handleSpeechPitchChange}
-                    onSlidingComplete={handleSpeechPitchComplete}
-                    minimumValue={0.5}
-                    maximumValue={2.0}
-                    step={0.1}
-                    minimumTrackTintColor={colors.primary}
-                    maximumTrackTintColor={colors.border}
-                    thumbTintColor={colors.primary}
-                    style={styles.slider}
-                    accessible={true}
-                    accessibilityLabel={`Speech pitch: ${speechPitch.toFixed(1)}`}
-                    accessibilityRole="adjustable"
-                  />
-                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}> 
-                    {speechPitch.toFixed(1)}
-                  </Text>
-                </View>,
+                <Text style={{ color: colors.textSecondary, fontSize: fontSize.small[textSize], marginLeft: 16 }}>
+                 
+                </Text>,
                 <AppIcon icon={AppIcons.Ear} color={colors.primary} />
               )}
               <Separator />
