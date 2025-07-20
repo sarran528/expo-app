@@ -6,14 +6,14 @@ interface IconSizeContextType {
 }
 
 const IconSizeContext = createContext<IconSizeContextType>({
-  iconSize: 24,
+  iconSize: 28,
   setIconSize: () => {},
 });
 
 export const useIconSize = () => useContext(IconSizeContext);
 
 export const IconSizeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [iconSize, setIconSize] = useState(24);
+  const [iconSize, setIconSize] = useState(28); // Default to medium
   return (
     <IconSizeContext.Provider value={{ iconSize, setIconSize }}>
       {children}
