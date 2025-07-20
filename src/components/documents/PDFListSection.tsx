@@ -10,7 +10,7 @@ import {
   Platform,
   ActionSheetIOS,
 } from 'react-native';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AppIcon, AppIcons } from '@/components/AppIcon';
 import * as Sharing from 'expo-sharing';
 
@@ -55,7 +55,7 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
   if (!safePdfs.length) {
     return (
       <View style={[styles.container, { alignItems: 'center', justifyContent: 'center', minHeight: 120 }]}>
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.medium, textAlign: 'center', marginTop: 32 }}>
+        <Text style={{ color: colors.textSecondary, fontSize: fontSize.medium[1], textAlign: 'center', marginTop: 32 }}>
           No PDF documents found. Import a PDF to get started.
         </Text>
       </View>
@@ -144,9 +144,9 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: 'transparent' }]}>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium }]}>
+        <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium[1] }]}>
           {getSortLabel(sortBy, sortOrder) || ' '}
         </Text>
         <TouchableOpacity onPress={() => setSortModalVisible(true)} style={{ padding: 4 }} accessibilityLabel="Sort PDFs">
@@ -175,11 +175,11 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
                   </View>
                 </View>
                 <View style={styles.infoContainer}>
-                  <Text style={[styles.name, { color: colors.text, fontSize: fontSize.medium }]} numberOfLines={1}>
+                  <Text style={{ color: colors.text, fontSize: fontSize.medium[1] }} numberOfLines={1}>
                     {item.name || 'No name'}
                   </Text>
                   <Text
-                    style={[styles.meta, { color: colors.textSecondary, fontSize: fontSize.small }]}
+                    style={{ color: colors.textSecondary, fontSize: fontSize.small[1] }}
                     numberOfLines={1}
                   >
                     {`${formatDate(item.date)}, ${formatFileSize(item.size)}, PDF document`}

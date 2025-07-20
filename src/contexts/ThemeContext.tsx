@@ -20,8 +20,8 @@ const darkColors = {
   surface: '#23232A',
   primary: '#60A5FA',
   onPrimary: '#18181B',
-  text: '#F3F4F6',
-  textSecondary: '#A1A1AA',
+  text: '#FFFFFF',           // pure white for best contrast
+  textSecondary: '#CCCCCC',  // light gray for secondary text
   border: '#27272A',
   error: '#F87171',
   onError: '#18181B',
