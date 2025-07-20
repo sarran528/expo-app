@@ -79,7 +79,7 @@ export default function TabLayout() {
                     accessibilityLabel="Gallery tab"
                     accessibilityRole="button"
                   >
-                    <AppIcon icon={AppIcons.GalleryVertical} color={color} strokeWidth={2.5} />
+                    <AppIcon icon={AppIcons.ImageIcon} color={color} strokeWidth={2.5} />
                   </View>
                 ),
               }}
