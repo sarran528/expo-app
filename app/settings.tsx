@@ -436,11 +436,11 @@ export default function SettingsScreen() {
                     accessibilityLabel={`Speech rate: ${speechRate.toFixed(2)} times normal`}
                     accessibilityRole="adjustable"
                   />
-                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small }]}>
+                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small }]}> 
                     {speechRate.toFixed(1)}x
                   </Text>
                 </View>,
-                <Text style={[styles.subIcon, { color: colors.primary, fontSize: fontSize.medium }]}>R</Text>
+                <AppIcon icon={AppIcons.Zap} color={colors.primary} />
               )}
               
               {renderSettingItem('Speech Pitch', 
@@ -460,11 +460,11 @@ export default function SettingsScreen() {
                     accessibilityLabel={`Speech pitch: ${speechPitch.toFixed(1)}`}
                     accessibilityRole="adjustable"
                   />
-                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small }]}>
+                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small }]}> 
                     {speechPitch.toFixed(1)}
                   </Text>
                 </View>,
-                <Text style={[styles.subIcon, { color: colors.primary, fontSize: fontSize.medium }]}>P</Text>
+                <AppIcon icon={AppIcons.Ear} color={colors.primary} />
               )}
               
               {renderSettingItem('Voice Selection', 

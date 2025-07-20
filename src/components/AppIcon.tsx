@@ -1,6 +1,6 @@
 import React from 'react';
 import { useIconSize } from '@/contexts/IconSizeContext';
-import { Menu, Settings, X, FileText, MoreVertical, ArrowLeft, Eye, Trash2, Volume2, Play, Pause, Square, Upload, Camera, GalleryVertical, User, Moon, Bell, Mic, Languages, CircleHelp, Shield, ChevronRight, Type, Key, VolumeX, RotateCcw, Zap, ZapOff, Image as ImageIcon, Pencil, Crop, Info, Send } from 'lucide-react-native';
+import { Menu, Settings, X, FileText, MoreVertical, ArrowLeft, Eye, Trash2, Volume2, Play, Pause, Square, Upload, Camera, GalleryVertical, User, Moon, Bell, Mic, Languages, CircleHelp, Shield, ChevronRight, Type, Key, VolumeX, RotateCcw, Zap, ZapOff, Image as ImageIcon, Pencil, Crop, Info, Send, Ear } from 'lucide-react-native';
 
 export const AppIcons = {
   Menu,
@@ -37,6 +37,8 @@ export const AppIcons = {
   Crop,
   Info,
   Send,
+  Ear,
+  
   // ...add more as needed
 };
 
