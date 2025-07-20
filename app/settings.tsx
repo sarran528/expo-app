@@ -21,6 +21,7 @@ import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { TTSService } from '@/services/TTSService';
 import { useIconSize } from '@/contexts/IconSizeContext';
 import { Settings, Volume2, User, Moon, Bell, Mic, Languages, CircleHelp as HelpCircle, Shield, Trash2, ChevronRight, Type, Key, Eye } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const { colors, fontSize, fontScale, isDarkMode, toggleTheme, updateFontScale } = useTheme();
@@ -28,6 +29,7 @@ export default function SettingsScreen() {
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { iconSize, setIconSize } = useIconSize();
   const [pendingIconSize, setPendingIconSize] = useState(iconSize);
+  const router = useRouter();
 
   // Settings state
   const [speechRate, setSpeechRate] = useState(0.75);
@@ -304,7 +306,19 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AppHeader title="Settings" showMenu={false} compact={true} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, backgroundColor: colors.surface }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' }}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <AppIcon icon={AppIcons.ArrowLeft} color={colors.primary} />
+        </TouchableOpacity>
+        <Text style={{ flex: 1, textAlign: 'right', fontSize: fontSize.xlarge, fontWeight: 'bold', color: colors.text, marginRight: 8 }}>
+          Settings
+        </Text>
+      </View>
       
       <Animated.ScrollView 
         contentContainerStyle={styles.content}
@@ -363,7 +377,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Accessibility Settings */}
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom:30 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large }]}>Accessibility</Text>
           
           {renderSettingItem('Voice Feedback', 
