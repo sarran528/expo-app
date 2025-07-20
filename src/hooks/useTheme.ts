@@ -72,7 +72,7 @@ const baseFontSizes: FontSizes = {
 export function useTheme() {
   const systemColorScheme = useColorScheme();
   const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
-  const [fontScale, setFontScale] = useState(1);
+  const [fontSize, setFontSize] = useState(1); // Changed from fontScale to fontSize
 
   useEffect(() => {
     loadThemePreferences();
@@ -81,14 +81,14 @@ export function useTheme() {
   const loadThemePreferences = async () => {
     try {
       const savedTheme = await AsyncStorage.getItem('theme');
-      const savedFontScale = await AsyncStorage.getItem('fontScale');
+      const savedFontSize = await AsyncStorage.getItem('fontSize'); // Changed from fontScale to fontSize
       
       if (savedTheme !== null) {
         setIsDarkMode(savedTheme === 'dark');
       }
       
-      if (savedFontScale !== null) {
-        setFontScale(parseFloat(savedFontScale));
+      if (savedFontSize !== null) {
+        setFontSize(parseFloat(savedFontSize));
       }
     } catch (error) {
       console.log('Error loading theme preferences:', error);
@@ -105,31 +105,22 @@ export function useTheme() {
     }
   };
 
-  const updateFontScale = async (scale: number) => {
-    try {
-      setFontScale(scale);
-      await AsyncStorage.setItem('fontScale', scale.toString());
-    } catch (error) {
-      console.log('Error saving font scale:', error);
-    }
-  };
+  // Removed updateFontScale function
 
   const colors = isDarkMode ? darkColors : lightColors;
   
-  const fontSize: FontSizes = {
-    small: baseFontSizes.small * fontScale,
-    medium: baseFontSizes.medium * fontScale,
-    large: baseFontSizes.large * fontScale,
-    xlarge: baseFontSizes.xlarge * fontScale,
-    xxlarge: baseFontSizes.xxlarge * fontScale,
+  // Removed fontSize calculation based on fontScale
+  const fontSizeValues = {
+    small: baseFontSizes.small,
+    medium: baseFontSizes.medium,
+    large: baseFontSizes.large,
   };
 
   return {
     colors,
-    fontSize,
-    fontScale,
+    fontSize: fontSizeValues, // Return the calculated fontSize values
     isDarkMode,
     toggleTheme,
-    updateFontScale,
+    // Removed updateFontScale from return
   };
 }

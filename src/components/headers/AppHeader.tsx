@@ -11,7 +11,7 @@ interface AppHeaderProps {
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, compact = false }) => {
-  const { colors, fontSize } = useTheme();
+  const { colors, fontSize, textSize } = useTheme();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(-300)).current;
@@ -54,7 +54,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
     >
       <View style={styles.menuItemContent}>
         <View style={styles.menuItemIcon}>{icon}</View>
-        <Text style={[styles.menuItemText, { color: colors.text, fontSize: fontSize.medium }]}>
+        <Text style={[styles.menuItemText, { color: colors.text, fontSize: fontSize.medium[textSize] }]}>
           {title}
         </Text>
       </View>
@@ -72,7 +72,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
           <Text
             style={[
               styles.title,
-              compact ? { fontSize: fontSize.large, marginTop: 0 } : { fontSize: fontSize.xlarge },
+              compact
+                ? { fontSize: fontSize.large[textSize], marginTop: 0 }
+                : { fontSize: fontSize.large[textSize] },
               { color: colors.text }
             ]}
             accessibilityRole="header"

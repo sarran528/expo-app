@@ -8,7 +8,7 @@ import React, { createContext, useContext, useState } from 'react';
 const TAB_TITLES: Record<string, string> = {
   gallery: 'Gallery',
   camera: 'Camera',
-  pdf: 'PDF Viewer',
+  pdf: 'Docs',
 };
 
 // Context to control scanner visibility globally

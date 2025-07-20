@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Speech from 'expo-speech';
 import { AppIcon, AppIcons } from '@/components/AppIcon';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AppHeader } from '@/components/headers/AppHeader';
 import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { TTSService } from '@/services/TTSService';
@@ -24,10 +24,11 @@ import { Settings, Volume2, User, Moon, Bell, Mic, Languages, CircleHelp as Help
 import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
-  const { colors, fontSize, fontScale, isDarkMode, toggleTheme, updateFontScale } = useTheme();
+  const { colors, fontSize, textSize, setTextSize } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { iconSize, setIconSize } = useIconSize();
+  const [pendingTextSize, setPendingTextSize] = useState(textSize);
   const [pendingIconSize, setPendingIconSize] = useState(iconSize);
   const router = useRouter();
 
@@ -153,14 +154,6 @@ export default function SettingsScreen() {
     speakWithCurrentSettings('Speech pitch adjusted');
   };
 
-  const handleFontScaleChange = (value: number) => {
-    updateFontScale(value);
-  };
-
-  const handleFontScaleComplete = () => {
-    speakWithCurrentSettings('Text size adjusted');
-  };
-
   const handleProfileNameChange = (value: string) => {
     setProfileName(value);
     saveSettings('profileName', value);
@@ -256,7 +249,7 @@ export default function SettingsScreen() {
             setLanguage('English');
             setSpeechVoice(null);
             setOcrApiKey('');
-            updateFontScale(1);
+            setTextSize(1); // Reset text size to default
             
             // Clear AsyncStorage
             try {
@@ -290,7 +283,7 @@ export default function SettingsScreen() {
     <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
       <View style={styles.settingLabel}>
         {icon}
-        <Text style={[styles.label, { color: colors.text, fontSize: fontSize.medium }]}>{label}</Text>
+        <Text style={[styles.label, { color: colors.text, fontSize: fontSize.medium[textSize] }]}>{label}</Text>
       </View>
       {component}
     </View>
@@ -315,7 +308,7 @@ export default function SettingsScreen() {
         >
           <AppIcon icon={AppIcons.ArrowLeft} color={colors.primary} />
         </TouchableOpacity>
-        <Text style={{ flex: 1, textAlign: 'right', fontSize: fontSize.xlarge, fontWeight: 'bold', color: colors.text, marginRight: 8 }}>
+        <Text style={{ flex: 1, textAlign: 'right', fontSize: fontSize.large[textSize], fontWeight: 'bold', color: colors.text, marginRight: 8 }}>
           Settings
         </Text>
       </View>
@@ -339,7 +332,7 @@ export default function SettingsScreen() {
                   color: colors.text, 
                   borderColor: colors.border,
                   backgroundColor: colors.background,
-                  fontSize: fontSize.medium
+                  fontSize: fontSize.medium[textSize]
                 }]}
                 placeholder="Enter your name"
                 placeholderTextColor={colors.textSecondary}
@@ -354,7 +347,7 @@ export default function SettingsScreen() {
                 title="Save"
                 onPress={handleProfileNameSubmit}
                 style={[styles.saveButton, { backgroundColor: colors.primary }]as any}
-                textStyle={{ color: colors.onPrimary, fontSize: fontSize.small }}
+                textStyle={{ color: colors.onPrimary, fontSize: fontSize.small[textSize] }}
                 accessibilityLabel="Save profile name"
               />
             </View>
@@ -366,10 +359,10 @@ export default function SettingsScreen() {
               accessibilityLabel={`Profile name: ${profileName || 'Not set'}. Tap to edit`}
               accessibilityRole="button"
             >
-              <Text style={[styles.profileName, { color: colors.text, fontSize: fontSize.large }]}>
+              <Text style={[styles.profileName, { color: colors.text, fontSize: fontSize.large[textSize] }]}>
                 {profileName || 'Set your name'}
               </Text>
-              <Text style={[styles.editText, { color: colors.primary, fontSize: fontSize.small }]}>
+              <Text style={[styles.editText, { color: colors.primary, fontSize: fontSize.small[textSize] }]}>
                 Edit
               </Text>
             </TouchableOpacity>
@@ -378,7 +371,7 @@ export default function SettingsScreen() {
 
         {/* Accessibility Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom:30 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large }]}>Accessibility</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Accessibility</Text>
           
           {renderSettingItem('Voice Feedback', 
             <Switch
@@ -393,30 +386,8 @@ export default function SettingsScreen() {
             <AppIcon icon={AppIcons.Volume2} color={colors.primary} />
           )}
           
-          {renderSettingItem('Text Size', 
-            <View style={styles.sliderContainer}>
-              <Slider
-                value={fontScale}
-                onValueChange={handleFontScaleChange}
-                onSlidingComplete={handleFontScaleComplete}
-                minimumValue={0.8}
-                maximumValue={2.0}
-                step={0.1}
-                minimumTrackTintColor={colors.primary}
-                maximumTrackTintColor={colors.border}
-                thumbTintColor={colors.primary}
-                style={styles.slider}
-                accessible={true}
-                accessibilityLabel={`Text size: ${fontScale.toFixed(1)} times normal`}
-                accessibilityRole="adjustable"
-              />
-              <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small }]}>
-                {fontScale.toFixed(1)}x
-              </Text>
-            </View>,
-            <AppIcon icon={AppIcons.Type} color={colors.primary} />
-          )}
-          
+  
+
           {voiceFeedbackEnabled && (
             <>
               {renderSettingItem('Speech Rate', 
@@ -436,7 +407,7 @@ export default function SettingsScreen() {
                     accessibilityLabel={`Speech rate: ${speechRate.toFixed(2)} times normal`}
                     accessibilityRole="adjustable"
                   />
-                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small }]}> 
+                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}> 
                     {speechRate.toFixed(1)}x
                   </Text>
                 </View>,
@@ -460,7 +431,7 @@ export default function SettingsScreen() {
                     accessibilityLabel={`Speech pitch: ${speechPitch.toFixed(1)}`}
                     accessibilityRole="adjustable"
                   />
-                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small }]}> 
+                  <Text style={[styles.value, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}> 
                     {speechPitch.toFixed(1)}
                   </Text>
                 </View>,
@@ -475,7 +446,7 @@ export default function SettingsScreen() {
                   accessibilityLabel={`Current voice: ${speechVoice ? speechVoice.substring(0, 15) + '...' : 'Default'}. Tap to change`}
                   accessibilityRole="button"
                 >
-                  <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small }]}>
+                  <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
                     {speechVoice ? speechVoice.substring(0, 15) + '...' : 'Default'}
                   </Text>
                   <ChevronRight size={18} color={colors.textSecondary} />
@@ -485,9 +456,60 @@ export default function SettingsScreen() {
             </>
           )}
 
+           {/* Text Size Control (above Icon Size) */}
+           <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 8, width: '100%' }}>
+            <Text style={{ fontSize: fontSize.medium[textSize], fontWeight: 'bold', marginBottom: 8, color: colors.text }}>
+              Text Size
+            </Text>
+            <View style={[
+              styles.textSizeExampleContainer,
+              { backgroundColor: colors.surface, borderColor: colors.border }
+            ]}>
+              <Text style={{ fontSize: fontSize.medium[pendingTextSize], fontWeight: '500', color: colors.primary }}>
+                This is an example of the current text size.
+              </Text>
+            </View>
+            <View style={styles.textSizePresets}>
+              <TouchableOpacity
+                onPress={() => setPendingTextSize(0)}
+                style={[styles.textSizePresetButton, { backgroundColor: pendingTextSize === 0 ? colors.primary + '20' : 'transparent' }]}
+                accessibilityLabel="Set text size to small"
+                accessibilityRole="button"
+              >
+                <Text style={{ color: pendingTextSize === 0 ? colors.primary : colors.textSecondary, fontSize: fontSize.small[textSize] }}>S</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setPendingTextSize(1)}
+                style={[styles.textSizePresetButton, { backgroundColor: pendingTextSize === 1 ? colors.primary + '20' : 'transparent' }]}
+                accessibilityLabel="Set text size to medium"
+                accessibilityRole="button"
+              >
+                <Text style={{ color: pendingTextSize === 1 ? colors.primary : colors.textSecondary, fontSize: fontSize.small[textSize] }}>M</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setPendingTextSize(2)}
+                style={[styles.textSizePresetButton, { backgroundColor: pendingTextSize === 2 ? colors.primary + '20' : 'transparent' }]}
+                accessibilityLabel="Set text size to large"
+                accessibilityRole="button"
+              >
+                <Text style={{ color: pendingTextSize === 2 ? colors.primary : colors.textSecondary, fontSize: fontSize.small[textSize] }}>L</Text>
+              </TouchableOpacity>
+            </View>
+            <AccessibleButton
+              title="Apply"
+              onPress={() => {
+                setTextSize(pendingTextSize);
+                speakWithCurrentSettings('Text size applied');
+              }}
+              style={{ marginTop: 12, backgroundColor: colors.primary, width: 120 }}
+              textStyle={{ color: colors.onPrimary, fontSize: fontSize.medium[textSize], textAlign: 'center' }}
+              accessibilityLabel="Apply text size"
+            />
+          </View>
+
           {/* Icon Size Accessibility Control */}
           <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 8, width: '100%' }}>
-            <Text style={{ fontSize: fontSize.medium, fontWeight: 'bold', marginBottom: 8, color: colors.text }}>
+            <Text style={{ fontSize: fontSize.medium[textSize], fontWeight: 'bold', marginBottom: 8, color: colors.text }}>
               Icon Size
             </Text>
 
@@ -507,9 +529,9 @@ export default function SettingsScreen() {
                   accessibilityRole="button"
                 >
                   <Text style={{
-                    color: Math.round(pendingIconSize) === value ? colors.primary : colors.textSecondary,
-                    fontWeight: Math.round(pendingIconSize) === value ? 'bold' : 'normal',
-                    fontSize: fontSize.small,
+                    color: pendingIconSize === value ? colors.primary : colors.textSecondary,
+                    fontWeight: pendingIconSize === value ? 'bold' : 'normal',
+                    fontSize: fontSize.small[textSize],
                   }}>
                     {label}
                   </Text>
@@ -539,7 +561,7 @@ export default function SettingsScreen() {
               title="Apply"
               onPress={() => setIconSize(pendingIconSize)}
               style={{ marginTop: 12, backgroundColor: colors.primary, width: 120 }}
-              textStyle={{ color: colors.onPrimary, fontSize: fontSize.medium, textAlign: 'center' }}
+              textStyle={{ color: colors.onPrimary, fontSize: fontSize.medium[textSize], textAlign: 'center' }}
               accessibilityLabel="Apply icon size"
             />
           </View>
@@ -547,7 +569,7 @@ export default function SettingsScreen() {
 
         {/* OCR Configuration */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large }]}>OCR Configuration</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>OCR Configuration</Text>
           
           {renderSettingItem('API Key', 
             isEditingApiKey ? (
@@ -557,7 +579,7 @@ export default function SettingsScreen() {
                     color: colors.text, 
                     borderColor: colors.border,
                     backgroundColor: colors.background,
-                    fontSize: fontSize.small
+                    fontSize: fontSize.small[textSize]
                   }]}
                   placeholder="Enter OCR API key"
                   placeholderTextColor={colors.textSecondary}
@@ -573,7 +595,7 @@ export default function SettingsScreen() {
                   title="Save"
                   onPress={handleOcrApiKeySubmit}
                   style={[styles.saveApiKeyButton, { backgroundColor: colors.primary }]as any}
-                  textStyle={{ color: colors.onPrimary, fontSize: fontSize.small }}
+                  textStyle={{ color: colors.onPrimary, fontSize: fontSize.small[textSize] }}
                   accessibilityLabel="Save OCR API key"
                 />
               </View>
@@ -585,7 +607,7 @@ export default function SettingsScreen() {
                 accessibilityLabel={`OCR API key ${ocrApiKey ? 'configured' : 'not set'}. Tap to edit`}
                 accessibilityRole="button"
               >
-                <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small }]}>
+                <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
                   {ocrApiKey ? '••••••••' : 'Not set'}
                 </Text>
                 <ChevronRight size={18} color={colors.textSecondary} />
@@ -596,7 +618,7 @@ export default function SettingsScreen() {
           
           <View style={[styles.apiKeyInfo, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <Eye size={16} color={colors.textSecondary} />
-            <Text style={[styles.apiKeyInfoText, { color: colors.textSecondary, fontSize: fontSize.small }]}>
+            <Text style={[styles.apiKeyInfoText, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
               {/* TODO: Add your OCR API key here. You can get one from OCR.space or similar services */}
               Configure your OCR API key for text extraction from images. Get your key from OCR.space or similar services.
             </Text>
@@ -605,20 +627,9 @@ export default function SettingsScreen() {
 
         {/* Appearance Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large }]}>Appearance</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Appearance</Text>
           
-          {renderSettingItem('Dark Mode', 
-            <Switch
-              value={isDarkMode}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.border, true: colors.primary + '40' }}
-              thumbColor={isDarkMode ? colors.primary : colors.textSecondary}
-              accessible={true}
-              accessibilityLabel={`Dark mode ${isDarkMode ? 'enabled' : 'disabled'}`}
-              accessibilityRole="switch"
-            />,
-            <AppIcon icon={AppIcons.Moon} color={colors.primary} />
-          )}
+          {/* Dark Mode Switch - REMOVED as per edit hint */}
           
           {renderSettingItem('Language', 
             <TouchableOpacity 
@@ -628,7 +639,7 @@ export default function SettingsScreen() {
               accessibilityLabel={`Current language: ${language}. Tap to change`}
               accessibilityRole="button"
             >
-              <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small }]}>
+              <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
                 {language}
               </Text>
               <ChevronRight size={18} color={colors.textSecondary} />
@@ -639,7 +650,7 @@ export default function SettingsScreen() {
 
         {/* Notifications Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large }]}>Notifications</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Notifications</Text>
           
           {renderSettingItem('Enable Notifications', 
             <Switch
@@ -657,7 +668,7 @@ export default function SettingsScreen() {
 
         {/* Other Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large }]}>Support</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Support</Text>
           
           {renderSettingItem('Privacy Policy', 
             <TouchableOpacity 
@@ -694,7 +705,7 @@ export default function SettingsScreen() {
 
         {/* Danger Zone */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.error }]}>
-          <Text style={[styles.sectionTitle, { color: colors.error, fontSize: fontSize.large }]}>Reset</Text>
+          <Text style={[styles.sectionTitle, { color: colors.error, fontSize: fontSize.large[textSize] }]}>Reset</Text>
           
           {renderSettingItem('Reset All Settings', 
             <TouchableOpacity 
@@ -704,14 +715,14 @@ export default function SettingsScreen() {
               accessibilityLabel="Reset all settings to default values"
               accessibilityRole="button"
             >
-              <Text style={[styles.resetText, { color: colors.error, fontSize: fontSize.small }]}>Reset</Text>
+              <Text style={[styles.resetText, { color: colors.error, fontSize: fontSize.small[textSize] }]}>Reset</Text>
             </TouchableOpacity>,
             <AppIcon icon={AppIcons.Trash2} color={colors.error} />
           )}
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.versionText, { color: colors.textSecondary, fontSize: fontSize.small }]}>
+          <Text style={[styles.versionText, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
             Version 1.0.0
           </Text>
         </View>
@@ -883,5 +894,31 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontWeight: '500',
+  },
+  textSizeControlContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  textSizePresets: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: 16,
+  },
+  textSizePresetButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  textSizeExampleContainer: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
   },
 });

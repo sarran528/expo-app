@@ -26,11 +26,15 @@ const darkColors = {
   onError: '#18181B',
 };
 
+// 1. Add textSize (0=small, 1=medium, 2=large) and setTextSize to the context state.
+// 2. fontSize values should be mapped based on textSize: e.g.,
+//    small: [13, 15, 17], medium: [15, 17, 20], large: [18, 20, 24] (or similar)
+// 3. Remove any fontScale logic.
+// 4. Update ThemeContextProps and ThemeProvider accordingly.
 const fontSize = {
-  small: 14,
-  medium: 17,
-  large: 22,
-  xlarge: 28,
+  small: [13, 15, 17],
+  medium: [15, 17, 20],
+  large: [18, 20, 24],
 };
 
 export type ThemeType = 'light' | 'dark';
@@ -39,7 +43,9 @@ interface ThemeContextProps {
   theme: ThemeType;
   colors: typeof lightColors;
   fontSize: typeof fontSize;
+  textSize: number; // 0=small, 1=medium, 2=large
   setTheme: (theme: ThemeType) => void;
+  setTextSize: (size: number) => void;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
@@ -47,12 +53,15 @@ const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const systemTheme = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
   const [theme, setTheme] = useState<ThemeType>(systemTheme);
+  const [textSize, setTextSize] = useState<number>(1); // Default to medium
 
   const value: ThemeContextProps = {
     theme,
     colors: theme === 'dark' ? darkColors : lightColors,
     fontSize,
+    textSize,
     setTheme,
+    setTextSize,
   };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
