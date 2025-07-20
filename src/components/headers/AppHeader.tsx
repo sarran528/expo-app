@@ -85,13 +85,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
           {showMenu && (
             <View style={styles.headerActions}>
               <TouchableOpacity
-                onPress={handleMenuPress}
+                onPress={() => router.push('/settings')}
                 style={[styles.headerButton, { backgroundColor: colors.background }]}
                 accessible={true}
-                accessibilityLabel="Open menu"
+                accessibilityLabel="Open settings"
                 accessibilityRole="button"
               >
-                <AppIcon icon={AppIcons.Menu} color={colors.text} strokeWidth={2.5} />
+                <AppIcon icon={AppIcons.Settings} color={colors.text} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           )}
