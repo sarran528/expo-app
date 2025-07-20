@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated } from 'react-native';
-import { Menu, Settings, X } from 'lucide-react-native';
+import { AppIcon, AppIcons } from '@/components/AppIcon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 
@@ -89,7 +89,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
                 accessibilityLabel="Open menu"
                 accessibilityRole="button"
               >
-                <Menu size={24} color={colors.text} strokeWidth={2.5} />
+                <AppIcon icon={AppIcons.Menu} color={colors.text} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           )}
@@ -123,11 +123,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
               accessibilityLabel="Close menu"
               accessibilityRole="button"
             >
-              <X size={24} color={colors.text} strokeWidth={2.5} />
+              <AppIcon icon={AppIcons.X} color={colors.text} strokeWidth={2.5} />
             </TouchableOpacity>
             <View style={styles.menuContent}>
               {renderMenuItem(
-                <Settings size={20} color={colors.text} strokeWidth={2.5} />, 'Settings', handleSettingsPress
+                <AppIcon icon={AppIcons.Settings} color={colors.text} strokeWidth={2.5} size={20} />, 'Settings', handleSettingsPress
               )}
             </View>
           </Animated.View>

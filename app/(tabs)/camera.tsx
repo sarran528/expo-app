@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, StyleSheet } from 'react-native';
-import { OCRScanner } from '../../components/OCRScanner';
+import { OCRScanner } from '@/components/documents/OCRScanner';
 import { useTheme } from '@/hooks/useTheme';
-import { AccessibleButton } from '../../components/AccessibleButton';
+import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { useOCRScanner } from './_layout';
 import { useFocusEffect } from 'expo-router';
 

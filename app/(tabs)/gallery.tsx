@@ -15,9 +15,9 @@ import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { Share, Trash2, Eye } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { AppHeader } from '../../components/AppHeader';
-import { AccessibleButton } from '@/components/AccessibleButton';
-import { ImageModal } from '@/components/ImageModal';
+import { AppHeader } from '@/components/headers/AppHeader';
+import { AccessibleButton } from '@/components/buttons/AccessibleButton';
+import { ImageModal } from '@/components/modals/ImageModal';
 import { OCRService } from '@/services/OCRService';
 import { TTSService } from '@/services/TTSService';
 

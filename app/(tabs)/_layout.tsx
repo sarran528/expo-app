@@ -1,8 +1,8 @@
 import { Tabs, useSegments } from 'expo-router';
 import { View } from 'react-native';
-import { GalleryVertical as Gallery, Camera, FileText } from 'lucide-react-native';
+import { AppIcon, AppIcons } from '@/components/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
-import { AppHeader } from '../../components/AppHeader';
+import { AppHeader } from '@/components/headers/AppHeader';
 import React, { createContext, useContext, useState } from 'react';
 
 const TAB_TITLES: Record<string, string> = {
@@ -79,7 +79,7 @@ export default function TabLayout() {
                     accessibilityLabel="Gallery tab"
                     accessibilityRole="button"
                   >
-                    <Gallery size={size} color={color} strokeWidth={2.5} />
+                    <AppIcon icon={AppIcons.GalleryVertical} size={size} color={color} strokeWidth={2.5} />
                   </View>
                 ),
               }}
@@ -94,7 +94,7 @@ export default function TabLayout() {
                     accessibilityLabel="Camera tab"
                     accessibilityRole="button"
                   >
-                    <Camera size={size} color={color} strokeWidth={2.5} />
+                    <AppIcon icon={AppIcons.Camera} size={size} color={color} strokeWidth={2.5} />
                   </View>
                 ),
               }}
@@ -109,7 +109,7 @@ export default function TabLayout() {
                     accessibilityLabel="PDF viewer tab"
                     accessibilityRole="button"
                   >
-                    <FileText size={size} color={color} strokeWidth={2.5} />
+                    <AppIcon icon={AppIcons.FileText} size={size} color={color} strokeWidth={2.5} />
                   </View>
                 ),
               }}

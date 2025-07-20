@@ -14,16 +14,20 @@ import Slider from '@react-native-community/slider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Speech from 'expo-speech';
-import { Settings, Volume2, User, Moon, Bell, Mic, Languages, CircleHelp as HelpCircle, Shield, Trash2, ChevronRight, Type, Key, Eye } from 'lucide-react-native';
+import { AppIcon, AppIcons } from '@/components/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
-import { AppHeader } from '@/components/AppHeader';
-import { AccessibleButton } from '@/components/AccessibleButton';
+import { AppHeader } from '@/components/headers/AppHeader';
+import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { TTSService } from '@/services/TTSService';
+import { useIconSize } from '@/contexts/IconSizeContext';
+import { Settings, Volume2, User, Moon, Bell, Mic, Languages, CircleHelp as HelpCircle, Shield, Trash2, ChevronRight, Type, Key, Eye } from 'lucide-react-native';
 
 export default function SettingsScreen() {
   const { colors, fontSize, fontScale, isDarkMode, toggleTheme, updateFontScale } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+  const { iconSize, setIconSize } = useIconSize();
+  const [pendingIconSize, setPendingIconSize] = useState(iconSize);
 
   // Settings state
   const [speechRate, setSpeechRate] = useState(0.75);
@@ -303,7 +307,7 @@ export default function SettingsScreen() {
         {/* Profile Section */}
         <View style={[styles.profileSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={[styles.profileCircle, { backgroundColor: colors.background }]}>
-            <User size={40} color={colors.primary} />
+            <AppIcon icon={AppIcons.User} color={colors.primary} />
           </View>
           
           {isEditing ? (
@@ -364,7 +368,7 @@ export default function SettingsScreen() {
               accessibilityLabel={`Voice feedback ${voiceFeedbackEnabled ? 'enabled' : 'disabled'}`}
               accessibilityRole="switch"
             />,
-            <Volume2 size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.Volume2} color={colors.primary} />
           )}
           
           {renderSettingItem('Text Size', 
@@ -388,7 +392,7 @@ export default function SettingsScreen() {
                 {fontScale.toFixed(1)}x
               </Text>
             </View>,
-            <Type size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.Type} color={colors.primary} />
           )}
           
           {voiceFeedbackEnabled && (
@@ -454,10 +458,35 @@ export default function SettingsScreen() {
                   </Text>
                   <ChevronRight size={18} color={colors.textSecondary} />
                 </TouchableOpacity>,
-                <Mic size={24} color={colors.primary} style={styles.icon} />
+                <AppIcon icon={AppIcons.Mic} color={colors.primary} />
               )}
             </>
           )}
+
+          {/* Icon Size Accessibility Control */}
+          <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 8 }}>
+            <Text style={{ fontSize: fontSize.medium, fontWeight: 'bold', marginBottom: 8, color: colors.text }}>Icon Size</Text>
+            <AppIcon icon={Settings} color={colors.primary} size={pendingIconSize} />
+            <Slider
+              minimumValue={16}
+              maximumValue={64}
+              value={pendingIconSize}
+              onValueChange={setPendingIconSize}
+              step={1}
+              style={{ width: '100%', marginVertical: 12 }}
+              minimumTrackTintColor={colors.primary}
+              maximumTrackTintColor={colors.border}
+              thumbTintColor={colors.primary}
+            />
+            <Text style={{ color: colors.textSecondary }}>{pendingIconSize}px</Text>
+            <AccessibleButton
+              title="Apply"
+              onPress={() => setIconSize(pendingIconSize)}
+              style={{ marginTop: 12, backgroundColor: colors.primary, width: 120 }}
+              textStyle={{ color: colors.onPrimary, fontSize: fontSize.medium, textAlign: 'center' }}
+              accessibilityLabel="Apply icon size"
+            />
+          </View>
         </View>
 
         {/* OCR Configuration */}
@@ -506,7 +535,7 @@ export default function SettingsScreen() {
                 <ChevronRight size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             ),
-            <Key size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.Key} color={colors.primary} />
           )}
           
           <View style={[styles.apiKeyInfo, { backgroundColor: colors.background, borderColor: colors.border }]}>
@@ -532,7 +561,7 @@ export default function SettingsScreen() {
               accessibilityLabel={`Dark mode ${isDarkMode ? 'enabled' : 'disabled'}`}
               accessibilityRole="switch"
             />,
-            <Moon size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.Moon} color={colors.primary} />
           )}
           
           {renderSettingItem('Language', 
@@ -548,7 +577,7 @@ export default function SettingsScreen() {
               </Text>
               <ChevronRight size={18} color={colors.textSecondary} />
             </TouchableOpacity>,
-            <Languages size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.Languages} color={colors.primary} />
           )}
         </View>
 
@@ -566,7 +595,7 @@ export default function SettingsScreen() {
               accessibilityLabel={`Notifications ${notificationsEnabled ? 'enabled' : 'disabled'}`}
               accessibilityRole="switch"
             />,
-            <Bell size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.Bell} color={colors.primary} />
           )}
         </View>
 
@@ -587,7 +616,7 @@ export default function SettingsScreen() {
             >
               <ChevronRight size={18} color={colors.textSecondary} />
             </TouchableOpacity>,
-            <Shield size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.Shield} color={colors.primary} />
           )}
           
           {renderSettingItem('Help & Support', 
@@ -603,7 +632,7 @@ export default function SettingsScreen() {
             >
               <ChevronRight size={18} color={colors.textSecondary} />
             </TouchableOpacity>,
-            <HelpCircle size={24} color={colors.primary} style={styles.icon} />
+            <AppIcon icon={AppIcons.CircleHelp} color={colors.primary} />
           )}
         </View>
 
@@ -621,7 +650,7 @@ export default function SettingsScreen() {
             >
               <Text style={[styles.resetText, { color: colors.error, fontSize: fontSize.small }]}>Reset</Text>
             </TouchableOpacity>,
-            <Trash2 size={24} color={colors.error} style={styles.icon} />
+            <AppIcon icon={AppIcons.Trash2} color={colors.error} />
           )}
         </View>
 

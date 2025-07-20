@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { TTSService } from '../services/TTSService';
+import { TTSService } from '@/services/TTSService';
 import { useTheme } from '@/hooks/useTheme';
-import { AccessibleButton } from './AccessibleButton';
+import { AccessibleButton } from '../buttons/AccessibleButton';
 
 interface TextReaderPageProps {
   text: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import TextReaderPage from '../components/TextReaderPage';
+import TextReaderPage from '@/components/readers/TextReaderPage';
 
 const TextReaderScreen = () => {
   const router = useRouter();

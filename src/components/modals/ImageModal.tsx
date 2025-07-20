@@ -10,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, Eye, Volume2, Send, Info, Pencil, Crop, RotateCw, Trash2 } from 'lucide-react-native';
+import { AppIcon, AppIcons } from '@/components/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
-import { AccessibleButton } from './AccessibleButton';
+import { AccessibleButton } from '../buttons/AccessibleButton';
 import { LoadingModal } from './LoadingModal';
 import ImageCropPicker from 'react-native-image-crop-picker';
 
@@ -113,7 +113,7 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
             accessibilityLabel="Close image viewer"
             accessibilityRole="button"
           >
-            <X size={24} color={colors.text} strokeWidth={2.5} />
+            <AppIcon icon={AppIcons.X} size={24} color={colors.text} strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
         {editVisible ? (
@@ -127,10 +127,10 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
             />
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 24 }}>
               <TouchableOpacity onPress={handleCrop} style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any} accessibilityLabel="Crop image">
-                <Crop size={28} color={colors.text} />
+                <AppIcon icon={AppIcons.Crop} size={28} color={colors.text} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setRotation((r) => (r + 90) % 360)} style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any} accessibilityLabel="Rotate image">
-                <RotateCw size={28} color={colors.text} />
+                <AppIcon icon={AppIcons.RotateCcw} size={28} color={colors.text} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {
                 setEditVisible(false);
@@ -145,10 +145,10 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
                   );
                 }
               }} style={[styles.actionButton, { backgroundColor: colors.error }] as any} accessibilityLabel="Delete image">
-                <Trash2 size={28} color={colors.onError} />
+                <AppIcon icon={AppIcons.Trash2} size={28} color={colors.onError} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setEditVisible(false)} style={[styles.actionButton, { backgroundColor: colors.primary }] as any} accessibilityLabel="Close edit">
-                <X size={28} color={colors.onPrimary} />
+                <AppIcon icon={AppIcons.X} size={28} color={colors.onPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -173,25 +173,25 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
                   onPress={handleOCRPress}
                   style={[styles.actionButton, { backgroundColor: colors.primary }] as any}
                   accessibilityLabel="Extract text from image using OCR"
-                  icon={<Eye size={24} color={colors.onPrimary} strokeWidth={2.5} />}
+                  icon={<AppIcon icon={AppIcons.Eye} size={24} color={colors.onPrimary} strokeWidth={2.5} />}
                 />
                 <AccessibleButton
                   onPress={() => setEditVisible(true)}
                   style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any}
                   accessibilityLabel="Edit image"
-                  icon={<Pencil size={24} color={colors.text} strokeWidth={2.5} />}
+                  icon={<AppIcon icon={AppIcons.Pencil} size={24} color={colors.text} strokeWidth={2.5} />}
                 />
                 <AccessibleButton
                   onPress={handleShare}
                   style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any}
                   accessibilityLabel="Share image"
-                  icon={<Send size={24} color={colors.text} strokeWidth={2.5} />}
+                  icon={<AppIcon icon={AppIcons.Send} size={24} color={colors.text} strokeWidth={2.5} />}
                 />
                 <AccessibleButton
                   onPress={() => setDetailsVisible(true)}
                   style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any}
                   accessibilityLabel="Show image details"
-                  icon={<Info size={24} color={colors.text} strokeWidth={2.5} />}
+                  icon={<AppIcon icon={AppIcons.Info} size={24} color={colors.text} strokeWidth={2.5} />}
                 />
               </View>
             </View>
@@ -205,7 +205,7 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
                     onPress={() => onTTS(image.ocrText!)}
                     style={[styles.ttsButton, { backgroundColor: colors.primary }] as any}
                     accessibilityLabel="Read extracted text aloud"
-                    icon={<Volume2 size={20} color={colors.onPrimary} strokeWidth={2.5} />}
+                    icon={<AppIcon icon={AppIcons.Volume2} size={20} color={colors.onPrimary} strokeWidth={2.5} />}
                   />
                 </View>
                 <ScrollView style={styles.textScrollView} nestedScrollEnabled>

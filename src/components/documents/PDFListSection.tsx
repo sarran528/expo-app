@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActionSheetIOS, Platform, Modal, Alert, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Modal,
+  Platform,
+  ActionSheetIOS,
+} from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { FileText, MoreVertical } from 'lucide-react-native';
+import { AppIcon, AppIcons } from '@/components/AppIcon';
 import * as Sharing from 'expo-sharing';
 
 interface PDFDocument {
@@ -17,7 +27,6 @@ interface PDFListSectionProps {
   onSelect: (pdf: PDFDocument) => void;
   selectedPDF: PDFDocument | null;
   onDelete?: (pdf: PDFDocument) => void;
-  onOCR?: (pdf: PDFDocument) => void;
   onShare?: (pdf: PDFDocument) => void;
   onSort?: (by: 'name' | 'date' | 'size') => void;
   onInvertSort?: () => void;
@@ -25,13 +34,34 @@ interface PDFListSectionProps {
   sortOrder?: 'asc' | 'desc';
 }
 
-export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, selectedPDF, onDelete, onOCR, onShare, onSort, onInvertSort, sortBy = 'date', sortOrder = 'desc' }) => {
+export const PDFListSection: React.FC<PDFListSectionProps> = ({
+  pdfs = [],
+  onSelect,
+  selectedPDF,
+  onDelete,
+  onShare,
+  onSort,
+  onInvertSort,
+  sortBy = 'date',
+  sortOrder = 'desc',
+}) => {
   const { colors, fontSize } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalPDF, setModalPDF] = useState<PDFDocument | null>(null);
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
-  if (!pdfs.length) return null;
+  const safePdfs = Array.isArray(pdfs) ? pdfs : [];
+
+  if (!safePdfs.length) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center', minHeight: 120 }]}>
+        <Text style={{ color: colors.textSecondary, fontSize: fontSize.medium, textAlign: 'center', marginTop: 32 }}>
+          No PDF documents found. Import a PDF to get started.
+        </Text>
+      </View>
+    );
+  }
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -39,6 +69,7 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
   const formatDate = (iso: string) => {
     const date = new Date(iso);
     const now = new Date();
@@ -50,47 +81,41 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
       month: 'short',
     });
   };
+
   const showOptions = (pdf: PDFDocument) => {
     if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions({
-        options: ['Cancel', 'Open', 'Apply OCR', 'Share', 'Delete'],
-        destructiveButtonIndex: 4,
-        cancelButtonIndex: 0,
-      }, (buttonIndex) => {
-        if (buttonIndex === 1) onSelect(pdf); // Open
-        if (buttonIndex === 2 && onOCR) onOCR(pdf);
-        if (buttonIndex === 3 && onShare) onShare(pdf);
-        if (buttonIndex === 4 && onDelete) {
-          Alert.alert(
-            'Delete PDF',
-            'Are you sure you want to delete this PDF?',
-            [
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Open', 'Share', 'Delete'],
+          destructiveButtonIndex: 3,
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) onSelect(pdf);
+          if (buttonIndex === 2 && onShare) onShare(pdf);
+          if (buttonIndex === 3 && onDelete) {
+            Alert.alert('Delete PDF', 'Are you sure you want to delete this PDF?', [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Delete', style: 'destructive', onPress: () => onDelete(pdf) },
-            ]
-          );
+            ]);
+          }
         }
-      });
+      );
     } else {
       setModalPDF(pdf);
       setModalVisible(true);
     }
   };
-  const handleModalAction = (action: 'open' | 'ocr' | 'share' | 'delete') => {
+
+  const handleModalAction = (action: 'open' | 'share' | 'delete') => {
     if (!modalPDF) return;
     if (action === 'open') onSelect(modalPDF);
-    if (action === 'ocr' && onOCR) onOCR(modalPDF);
     if (action === 'share' && onShare) onShare(modalPDF);
     if (action === 'delete' && onDelete) {
-      // Show confirmation dialog before deleting
-      Alert.alert(
-        'Delete PDF',
-        'Are you sure you want to delete this PDF?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Delete', style: 'destructive', onPress: () => onDelete(modalPDF) },
-        ]
-      );
+      Alert.alert('Delete PDF', 'Are you sure you want to delete this PDF?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => onDelete(modalPDF) },
+      ]);
     }
     setModalVisible(false);
     setModalPDF(null);
@@ -111,50 +136,52 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
     }
   };
 
-  function getSortLabel(sortBy: 'name' | 'date' | 'size', sortOrder: 'asc' | 'desc') {
+  const getSortLabel = (sortBy: 'name' | 'date' | 'size', sortOrder: 'asc' | 'desc') => {
     if (sortBy === 'date') return sortOrder === 'asc' ? 'First Uploaded' : 'Recently Added';
     if (sortBy === 'name') return sortOrder === 'asc' ? 'Alphabetical Order' : 'Reverse Alphabetical';
     if (sortBy === 'size') return sortOrder === 'asc' ? 'Smallest Files First' : 'Biggest Files First';
     return '';
-  }
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: 'transparent' }]}> {/* No background color */}
+    <View style={[styles.container, { backgroundColor: 'transparent' }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
         <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium }]}>
           {getSortLabel(sortBy, sortOrder) || ' '}
         </Text>
-        <TouchableOpacity
-          onPress={() => setSortModalVisible(true)}
-          style={{ padding: 4 }}
-          accessibilityLabel="Sort PDFs"
-        >
+        <TouchableOpacity onPress={() => setSortModalVisible(true)} style={{ padding: 4 }} accessibilityLabel="Sort PDFs">
           <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Sort</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ gap: 0 }} showsVerticalScrollIndicator={false}>
-        {pdfs.map((item, idx) => (
+        {safePdfs.map((item, idx) => (
           <React.Fragment key={item.uri}>
             <TouchableOpacity
               style={[
                 styles.item,
-                { backgroundColor: 'transparent', borderColor: selectedPDF?.uri === item.uri ? colors.primary : 'transparent' },
+                {
+                  backgroundColor: 'transparent',
+                  borderColor: selectedPDF?.uri === item.uri ? colors.primary : 'transparent',
+                },
               ]}
               onPress={() => onSelect(item)}
               accessibilityLabel={`Select PDF: ${item.name}`}
             >
               <View style={styles.row}>
-                {/* PDF Icon with PDF text */}
                 <View style={styles.iconContainer}>
                   <View style={styles.pdfIconWrap}>
-                    <FileText size={28} color={colors.error} fill={colors.error} />
+                    <AppIcon icon={AppIcons.FileText} size={28} color={colors.error} fill={colors.error} />
                     <Text style={styles.pdfLabel}>PDF</Text>
                   </View>
                 </View>
                 <View style={styles.infoContainer}>
-                  <Text style={[styles.name, { color: colors.text, fontSize: fontSize.medium }]} numberOfLines={1} ellipsizeMode="tail">{item.name || 'No name'}</Text>
-                  <Text style={[styles.meta, { color: colors.textSecondary, fontSize: fontSize.small }]}
-                    numberOfLines={1} ellipsizeMode="tail">
+                  <Text style={[styles.name, { color: colors.text, fontSize: fontSize.medium }]} numberOfLines={1}>
+                    {item.name || 'No name'}
+                  </Text>
+                  <Text
+                    style={[styles.meta, { color: colors.textSecondary, fontSize: fontSize.small }]}
+                    numberOfLines={1}
+                  >
                     {`${formatDate(item.date)}, ${formatFileSize(item.size)}, PDF document`}
                   </Text>
                 </View>
@@ -163,31 +190,22 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
                   onPress={() => showOptions(item)}
                   accessibilityLabel={`More options for ${item.name}`}
                 >
-                  <MoreVertical size={22} color={colors.textSecondary} />
+                  <AppIcon icon={AppIcons.MoreVertical} size={22} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-            {idx < pdfs.length - 1 && (
-              <View style={[styles.separator, { borderBottomColor: colors.border }]} />
-            )}
+            {idx < safePdfs.length - 1 && <View style={[styles.separator, { borderBottomColor: colors.border }]} />}
           </React.Fragment>
         ))}
       </ScrollView>
-      {/* Android Modal for options */}
+
+      {/* Android Modal */}
       {Platform.OS !== 'ios' && (
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setModalVisible(false)}
-        >
+        <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
           <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setModalVisible(false)}>
-            <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
+            <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <TouchableOpacity style={styles.modalOption} onPress={() => handleModalAction('open')}>
                 <Text style={[styles.modalOptionText, { color: colors.text }]}>Open</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalOption} onPress={() => handleModalAction('ocr')}>
-                <Text style={[styles.modalOptionText, { color: colors.text }]}>Apply OCR</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalOption} onPress={() => handleModalAction('share')}>
                 <Text style={[styles.modalOptionText, { color: colors.text }]}>Share</Text>
@@ -199,13 +217,9 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
           </TouchableOpacity>
         </Modal>
       )}
+
       {/* Sort Modal */}
-      <Modal
-        visible={sortModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSortModalVisible(false)}
-      >
+      <Modal visible={sortModalVisible} transparent animationType="fade" onRequestClose={() => setSortModalVisible(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setSortModalVisible(false)}>
           <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {['name', 'date', 'size'].map((by) => (
@@ -229,9 +243,7 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({ pdfs, onSelect, 
                 setSortModalVisible(false);
               }}
             >
-              <Text style={[styles.modalOptionText, { color: colors.text }]}>
-                Invert Order
-              </Text>
+              <Text style={[styles.modalOptionText, { color: colors.text }]}>Invert Order</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -340,4 +352,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
-}); 
+});
