@@ -275,6 +275,10 @@ export default function SettingsScreen() {
     );
   };
 
+  const Separator = () => (
+    <View style={{ height: 1, backgroundColor: colors.textSecondary, borderRadius: 2, marginHorizontal: 16, marginVertical: 8 }} />
+  );
+
   const renderSettingItem = (
     label: string,
     component: React.ReactNode,
@@ -286,6 +290,7 @@ export default function SettingsScreen() {
         <Text style={[styles.label, { color: colors.text, fontSize: fontSize.medium[textSize] }]}>{label}</Text>
       </View>
       {component}
+      <Separator />
     </View>
   );
 
@@ -372,7 +377,7 @@ export default function SettingsScreen() {
         {/* Accessibility Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom:30 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Accessibility</Text>
-          
+          <Separator />
           {renderSettingItem('Voice Feedback', 
             <Switch
               value={voiceFeedbackEnabled}
@@ -386,11 +391,10 @@ export default function SettingsScreen() {
             <AppIcon icon={AppIcons.Volume2} color={colors.primary} />
           )}
           
-  
-
           {voiceFeedbackEnabled && (
             <>
-              {renderSettingItem('Speech Rate', 
+            <Separator />
+              {renderSettingItem('Speed', 
                 <View style={styles.sliderContainer}>
                   <Slider
                     value={speechRate}
@@ -413,8 +417,8 @@ export default function SettingsScreen() {
                 </View>,
                 <AppIcon icon={AppIcons.Zap} color={colors.primary} />
               )}
-              
-              {renderSettingItem('Speech Pitch', 
+              <Separator />
+              {renderSettingItem('Pitch', 
                 <View style={styles.sliderContainer}>
                   <Slider
                     value={speechPitch}
@@ -437,7 +441,7 @@ export default function SettingsScreen() {
                 </View>,
                 <AppIcon icon={AppIcons.Ear} color={colors.primary} />
               )}
-              
+              <Separator />
               {renderSettingItem('Voice Selection', 
                 <TouchableOpacity 
                   style={styles.optionButton}
@@ -455,7 +459,7 @@ export default function SettingsScreen() {
               )}
             </>
           )}
-
+            <Separator />
            {/* Text Size Control (above Icon Size) */}
            <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 8, width: '100%' }}>
             <Text style={{ fontSize: fontSize.medium[textSize], fontWeight: 'bold', marginBottom: 8, color: colors.text }}>
@@ -495,18 +499,8 @@ export default function SettingsScreen() {
                 <Text style={{ color: pendingTextSize === 2 ? colors.primary : colors.textSecondary, fontSize: fontSize.small[textSize] }}>L</Text>
               </TouchableOpacity>
             </View>
-            <AccessibleButton
-              title="Apply"
-              onPress={() => {
-                setTextSize(pendingTextSize);
-                speakWithCurrentSettings('Text size applied');
-              }}
-              style={{ marginTop: 12, backgroundColor: colors.primary, width: 120 }}
-              textStyle={{ color: colors.onPrimary, fontSize: fontSize.medium[textSize], textAlign: 'center' }}
-              accessibilityLabel="Apply text size"
-            />
           </View>
-
+          <Separator />
           {/* Icon Size Accessibility Control */}
           <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 8, width: '100%' }}>
             <Text style={{ fontSize: fontSize.medium[textSize], fontWeight: 'bold', marginBottom: 8, color: colors.text }}>
@@ -519,7 +513,7 @@ export default function SettingsScreen() {
             </View>
 
             {/* Labels Row */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 8 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 9 , marginRight: 13 }}>
               {ICON_SIZES.map(({ label, value }) => (
                 <TouchableOpacity
                   key={label}
@@ -556,13 +550,20 @@ export default function SettingsScreen() {
             {/* Optional: Show current value */}
             <Text style={{ color: colors.textSecondary, marginTop: 4 }}>{pendingIconSize}px</Text>
 
-            {/* Apply Button */}
+          </View>
+
+          {/* Apply All Accessibility Settings Button */}
+          <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 16 }}>
             <AccessibleButton
-              title="Apply"
-              onPress={() => setIconSize(pendingIconSize)}
-              style={{ marginTop: 12, backgroundColor: colors.primary, width: 120 }}
+              title="Apply All Accessibility Settings"
+              onPress={() => {
+                setTextSize(pendingTextSize);
+                setIconSize(pendingIconSize);
+                speakWithCurrentSettings('Accessibility settings applied');
+              }}
+              style={{ backgroundColor: colors.primary, width: '100%' }}
               textStyle={{ color: colors.onPrimary, fontSize: fontSize.medium[textSize], textAlign: 'center' }}
-              accessibilityLabel="Apply icon size"
+              accessibilityLabel="Apply all accessibility settings"
             />
           </View>
         </View>
@@ -570,7 +571,7 @@ export default function SettingsScreen() {
         {/* OCR Configuration */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>OCR Configuration</Text>
-          
+          <Separator />
           {renderSettingItem('API Key', 
             isEditingApiKey ? (
               <View style={styles.editApiKeyContainer}>
@@ -616,6 +617,8 @@ export default function SettingsScreen() {
             <AppIcon icon={AppIcons.Key} color={colors.primary} />
           )}
           
+          <Separator />
+
           <View style={[styles.apiKeyInfo, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <Eye size={16} color={colors.textSecondary} />
             <Text style={[styles.apiKeyInfoText, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
@@ -630,7 +633,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Appearance</Text>
           
           {/* Dark Mode Switch - REMOVED as per edit hint */}
-          
+          <Separator />
           {renderSettingItem('Language', 
             <TouchableOpacity 
               style={styles.optionButton}
@@ -651,7 +654,7 @@ export default function SettingsScreen() {
         {/* Notifications Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Notifications</Text>
-          
+          <Separator />
           {renderSettingItem('Enable Notifications', 
             <Switch
               value={notificationsEnabled}
@@ -669,7 +672,7 @@ export default function SettingsScreen() {
         {/* Other Settings */}
         <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, fontSize: fontSize.large[textSize] }]}>Support</Text>
-          
+          <Separator />
           {renderSettingItem('Privacy Policy', 
             <TouchableOpacity 
               style={styles.optionButton}
@@ -685,7 +688,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>,
             <AppIcon icon={AppIcons.Shield} color={colors.primary} />
           )}
-          
+          <Separator />
           {renderSettingItem('Help & Support', 
             <TouchableOpacity 
               style={styles.optionButton}
