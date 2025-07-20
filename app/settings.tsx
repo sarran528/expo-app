@@ -286,7 +286,7 @@ export default function SettingsScreen() {
   ) => (
     <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
       <View style={styles.settingLabel}>
-        {icon}
+        {icon && <View style={{ marginRight: 16 }}>{icon}</View>}
         <Text style={[styles.label, { color: colors.text, fontSize: fontSize.medium[textSize] }]}>{label}</Text>
       </View>
       {component}
