@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
-import { Share, Trash2, Eye } from 'lucide-react-native';
+import { AppIcon, AppIcons } from '@/components/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { AppHeader } from '@/components/headers/AppHeader';
 import { AccessibleButton } from '@/components/buttons/AccessibleButton';

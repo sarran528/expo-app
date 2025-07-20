@@ -127,7 +127,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
             </TouchableOpacity>
             <View style={styles.menuContent}>
               {renderMenuItem(
-                <AppIcon icon={AppIcons.Settings} color={colors.text} strokeWidth={2.5} size={20} />, 'Settings', handleSettingsPress
+                <AppIcon icon={AppIcons.Settings} color={colors.text} strokeWidth={2.5} />, 'Settings', handleSettingsPress
               )}
             </View>
           </Animated.View>

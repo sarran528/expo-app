@@ -170,7 +170,7 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
               <View style={styles.row}>
                 <View style={styles.iconContainer}>
                   <View style={styles.pdfIconWrap}>
-                    <AppIcon icon={AppIcons.FileText} size={28} color={colors.error} fill={colors.error} />
+                    <AppIcon icon={AppIcons.FileText} color={colors.error} fill={colors.error} />
                     <Text style={styles.pdfLabel}>PDF</Text>
                   </View>
                 </View>
@@ -190,7 +190,7 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
                   onPress={() => showOptions(item)}
                   accessibilityLabel={`More options for ${item.name}`}
                 >
-                  <AppIcon icon={AppIcons.MoreVertical} size={22} color={colors.textSecondary} />
+                  <AppIcon icon={AppIcons.MoreVertical} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>

@@ -294,6 +294,14 @@ export default function SettingsScreen() {
     </View>
   );
 
+  // Replace the icon size slider with four preset buttons
+  const ICON_SIZES = [
+    { label: 'Small', value: 20 },
+    { label: 'Medium', value: 28 },
+    { label: 'Large', value: 36 },
+    { label: 'Extra Large', value: 48 },
+  ];
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <AppHeader title="Settings" showMenu={false} compact={true} />
@@ -464,21 +472,55 @@ export default function SettingsScreen() {
           )}
 
           {/* Icon Size Accessibility Control */}
-          <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 8 }}>
-            <Text style={{ fontSize: fontSize.medium, fontWeight: 'bold', marginBottom: 8, color: colors.text }}>Icon Size</Text>
-            <AppIcon icon={Settings} color={colors.primary} size={pendingIconSize} />
+          <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 8, width: '100%' }}>
+            <Text style={{ fontSize: fontSize.medium, fontWeight: 'bold', marginBottom: 8, color: colors.text }}>
+              Icon Size
+            </Text>
+
+            {/* Example Icon that changes with slider */}
+            <View style={{ marginBottom: 16 }}>
+              <AppIcon icon={AppIcons.Settings} color={colors.primary} size={pendingIconSize} />
+            </View>
+
+            {/* Labels Row */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 8 }}>
+              {ICON_SIZES.map(({ label, value }) => (
+                <TouchableOpacity
+                  key={label}
+                  onPress={() => setPendingIconSize(value)}
+                  style={{ flex: 1, alignItems: 'center' }}
+                  accessibilityLabel={`Set icon size to ${label}`}
+                  accessibilityRole="button"
+                >
+                  <Text style={{
+                    color: Math.round(pendingIconSize) === value ? colors.primary : colors.textSecondary,
+                    fontWeight: Math.round(pendingIconSize) === value ? 'bold' : 'normal',
+                    fontSize: fontSize.small,
+                  }}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Slider */}
             <Slider
-              minimumValue={16}
-              maximumValue={64}
-              value={pendingIconSize}
-              onValueChange={setPendingIconSize}
+              style={{ width: '100%' }}
+              minimumValue={ICON_SIZES[0].value}
+              maximumValue={ICON_SIZES[ICON_SIZES.length - 1].value}
               step={1}
-              style={{ width: '100%', marginVertical: 12 }}
               minimumTrackTintColor={colors.primary}
               maximumTrackTintColor={colors.border}
               thumbTintColor={colors.primary}
+              value={pendingIconSize}
+              onValueChange={setPendingIconSize}
+              accessibilityLabel="Adjust icon size slider"
             />
-            <Text style={{ color: colors.textSecondary }}>{pendingIconSize}px</Text>
+
+            {/* Optional: Show current value */}
+            <Text style={{ color: colors.textSecondary, marginTop: 4 }}>{pendingIconSize}px</Text>
+
+            {/* Apply Button */}
             <AccessibleButton
               title="Apply"
               onPress={() => setIconSize(pendingIconSize)}

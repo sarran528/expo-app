@@ -193,7 +193,7 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
                   style={[styles.controlButton, { backgroundColor: colors.primary }]as any}
                   textStyle={{ color: colors.onPrimary, fontSize: fontSize.medium }}
                   accessibilityLabel="Process image with OCR"
-                  icon={<AppIcons.Eye size={20} color={colors.onPrimary} strokeWidth={2.5} />}
+                  icon={<AppIcons.Eye />}
                 />
               </View>
             )}
@@ -216,16 +216,16 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
                   style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
                   accessibilityLabel={`Flash is ${flash === 'on' ? 'on' : 'off'}. Tap to toggle`}
                   icon={flash === 'on' ? (
-                    <AppIcons.Zap size={24} color={colors.primary} strokeWidth={2.5} />
+                    <AppIcons.Zap />
                   ) : (
-                    <AppIcons.ZapOff size={24} color={colors.textSecondary} strokeWidth={2.5} />
+                    <AppIcons.ZapOff />
                   )}
                 />
                 <AccessibleButton
                   onPress={onClose}
                   style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
                   accessibilityLabel="Close OCR scanner"
-                  icon={<AppIcons.X size={24} color={colors.text} strokeWidth={2.5} />}
+                  icon={<AppIcons.X />}
                 />
               </View>
               {/* Bottom Controls: Evenly spaced */}
@@ -234,20 +234,20 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
                   onPress={pickImageFromGallery}
                   style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
                   accessibilityLabel="Import image from gallery"
-                  icon={<AppIcons.ImageIcon size={24} color={colors.text} strokeWidth={2.5} />}
+                  icon={<AppIcons.ImageIcon />}
                 />
                 <AccessibleButton
                   onPress={takePicture}
                   disabled={isProcessing}
                   style={[styles.captureButton, { backgroundColor: colors.primary }] as any}
                   accessibilityLabel="Capture photo for OCR"
-                  icon={<AppIcons.Camera size={28} color={colors.onPrimary} strokeWidth={2.5} />}
+                  icon={<AppIcons.Camera />}
                 />
                 <AccessibleButton
                   onPress={toggleCameraFacing}
                   style={[styles.overlayButton, { backgroundColor: colors.surface }] as any}
                   accessibilityLabel={`Switch to ${facing === 'back' ? 'front' : 'back'} camera`}
-                  icon={<AppIcons.RotateCcw size={24} color={colors.text} strokeWidth={2.5} />}
+                  icon={<AppIcons.RotateCcw />}
                 />
               </View>
             </View>
