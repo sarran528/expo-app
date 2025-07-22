@@ -1,13 +1,17 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
-    "slug": "bolt-expo-nativewind",
+    "name": "EYE ZONE",
+    "slug": "eye-zone",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icons/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "android": {
+      "package": "com.yourname.eyezone",
+      "versionCode": 1
+    },
     "ios": {
       "supportsTablet": true
     },
