@@ -4,7 +4,7 @@
     "slug": "eye-zone",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/icons/icon.png",
+    "icon": "./src/assets/icons/icon.jpg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
