@@ -23,8 +23,244 @@ import { useIconSize } from '@/contexts/IconSizeContext';
 import { Settings, Volume2, User, Moon, Bell, Mic, Languages, CircleHelp as HelpCircle, Shield, Trash2, ChevronRight, Type, Key, Eye } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
-export default function SettingsScreen() {
+type Colors = {
+  background: string;
+  border: string;
+  surface: string;
+  text: string;
+  primary: string;
+  textSecondary: string;
+};
+
+const createStyles = (colors: Colors) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    paddingBottom: 40,
+  },
+  sampleIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    height: 60,
+  },
+  sampleTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    height: 40,
+  },
+  section: {
+    marginTop: 16,
+    marginHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  sectionTitle: {
+    fontWeight: '600',
+    padding: 16,
+    paddingBottom: 8,
+    color: colors.text,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    minHeight: 60,
+  },
+  settingLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  label: {
+    fontWeight: '500',
+    flex: 1,
+    color: colors.text,
+  },
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 44,
+    minWidth: 44,
+  },
+  optionValue: {
+    marginRight: 8,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  valueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
+    paddingVertical: 4,
+  },
+  changeButton: {
+    backgroundColor: colors.primary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  changeButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  sizeButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+  },
+  sizeButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  profileSection: {
+    marginTop: 16,
+    marginHorizontal: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  profileCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  profileNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileName: {
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  editText: {
+    fontWeight: '500',
+  },
+  editNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 8,
+  },
+  nameInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontWeight: '500',
+  },
+  saveButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  icon: {
+    marginRight: 12,
+  },
+  subIcon: {
+    marginRight: 12,
+    fontWeight: 'bold',
+    width: 24,
+    textAlign: 'center',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginLeft: 16,
+    minWidth: 120,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+    marginHorizontal: 8,
+  },
+  value: {
+    width: 40,
+    textAlign: 'right',
+    fontWeight: '500',
+  },
+  editApiKeyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+  },
+  apiKeyInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    fontWeight: '500',
+    minHeight: 40,
+  },
+  saveApiKeyButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    minHeight: 40,
+  },
+  apiKeyInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    margin: 16,
+    marginTop: 0,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  apiKeyInfoText: {
+    flex: 1,
+    lineHeight: 20,
+  },
+  resetText: {
+    fontWeight: '600',
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: 32,
+    marginBottom: 16,
+  },
+  versionText: {
+    fontWeight: '500',
+  },
+  textSizeControlContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  textSizePresets: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+});
+
+const SettingsScreenComponent = () => {
   const { colors, fontSize, textSize, setTextSize, theme, setTheme } = useTheme();
+  const styles = createStyles(colors);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { iconSize, setIconSize } = useIconSize();
@@ -138,20 +374,14 @@ export default function SettingsScreen() {
     setSpeechRate(value);
     saveSettings('speechRate', value);
     TTSService.setSpeechRate(value);
-  };
-
-  const handleSpeechRateComplete = () => {
-    speakWithCurrentSettings('Speech speed adjusted');
+    TTSService.speak('Testing new speech speed', { rate: value });
   };
 
   const handleSpeechPitchChange = (value: number) => {
     setSpeechPitch(value);
     saveSettings('speechPitch', value);
     TTSService.setSpeechPitch(value);
-  };
-
-  const handleSpeechPitchComplete = () => {
-    speakWithCurrentSettings('Speech pitch adjusted');
+    TTSService.speak('Testing new speech pitch', { pitch: value });
   };
 
   const handleProfileNameChange = (value: string) => {
@@ -294,7 +524,7 @@ export default function SettingsScreen() {
     </View>
   );
 
-  // Replace the icon size slider with four preset buttons
+  // Preset values for icon sizes
   const ICON_SIZES = [
     { label: 'Small', value: 20 },
     { label: 'Medium', value: 28 },
@@ -394,19 +624,98 @@ export default function SettingsScreen() {
           {voiceFeedbackEnabled && (
             <>
             <Separator />
-              {renderSettingItem('Speed', 
-                <Text style={{ color: colors.textSecondary, fontSize: fontSize.small[textSize], marginLeft: 16 }}>
-                 
-                </Text>,
+              {renderSettingItem('Speed',
+                <View style={styles.valueContainer}>
+                  <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
+                    {speechRate === 0.5 ? 'Very Slow' :
+                     speechRate === 0.75 ? 'Slow' :
+                     speechRate === 1.0 ? 'Normal' :
+                     speechRate === 1.25 ? 'Fast' :
+                     'Very Fast'}
+                  </Text>
+                  <TouchableOpacity 
+                    style={styles.optionButton}
+                    onPress={() => {
+                      Alert.alert(
+                        'Select Speech Speed',
+                        'Choose a speed for text-to-speech',
+                        [
+                          { text: 'Very Slow', onPress: () => handleSpeechRateChange(0.5) },
+                          { text: 'Slow', onPress: () => handleSpeechRateChange(0.75) },
+                          { text: 'Normal', onPress: () => handleSpeechRateChange(1.0) },
+                          { text: 'Fast', onPress: () => handleSpeechRateChange(1.25) },
+                          { text: 'Very Fast', onPress: () => handleSpeechRateChange(1.5) },
+                          { text: 'Cancel', style: 'cancel' }
+                        ]
+                      );
+                    }}
+                    accessibilityLabel={`Speech speed: ${speechRate}x. Tap to change`}
+                    accessibilityRole="button"
+                  >
+                    <View style={{
+                      backgroundColor: `${colors.primary}15`,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 16,
+                      marginLeft: 8
+                    }}>
+                      <Text style={{
+                        fontSize: 12,
+                        fontWeight: '600',
+                        color: colors.text
+                      }}>Change</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>,
                 <AppIcon icon={AppIcons.Zap} color={colors.primary} />
               )}
+              
               <Separator />
-              {renderSettingItem('Pitch', 
-                <Text style={{ color: colors.textSecondary, fontSize: fontSize.small[textSize], marginLeft: 16 }}>
-                 
-                </Text>,
+              
+              {renderSettingItem('Pitch',
+                <View style={styles.valueContainer}>
+                  <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
+                    {speechPitch === 0.8 ? 'Very Low' :
+                     speechPitch === 1.0 ? 'Low' :
+                     speechPitch === 1.2 ? 'Normal' :
+                     'High'}
+                  </Text>
+                  <TouchableOpacity 
+                    style={styles.optionButton}
+                    onPress={() => {
+                      Alert.alert(
+                        'Select Speech Pitch',
+                        'Choose a pitch for text-to-speech',
+                        [
+                          { text: 'Very Low', onPress: () => handleSpeechPitchChange(0.8) },
+                          { text: 'Low', onPress: () => handleSpeechPitchChange(1.0) },
+                          { text: 'Normal', onPress: () => handleSpeechPitchChange(1.2) },
+                          { text: 'High', onPress: () => handleSpeechPitchChange(1.4) },
+                          { text: 'Cancel', style: 'cancel' }
+                        ]
+                      );
+                    }}
+                    accessibilityLabel={`Speech pitch: ${speechPitch}x. Tap to change`}
+                    accessibilityRole="button"
+                  >
+                    <View style={{
+                      backgroundColor: `${colors.primary}15`,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 16,
+                      marginLeft: 8
+                    }}>
+                      <Text style={{
+                        fontSize: 12,
+                        fontWeight: '600',
+                        color: colors.text
+                      }}>Change</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>,
                 <AppIcon icon={AppIcons.Ear} color={colors.primary} />
               )}
+              
               <Separator />
               {renderSettingItem('Voice Selection', 
                 <TouchableOpacity 
@@ -419,7 +728,19 @@ export default function SettingsScreen() {
                   <Text style={[styles.optionValue, { color: colors.textSecondary, fontSize: fontSize.small[textSize] }]}>
                     {speechVoice ? speechVoice.substring(0, 15) + '...' : 'Default'}
                   </Text>
-                  <ChevronRight size={18} color={colors.textSecondary} />
+                  <View style={{
+                    backgroundColor: `${colors.primary}15`,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 16,
+                    marginLeft: 8
+                  }}>
+                    <Text style={{
+                      fontSize: 12,
+                      fontWeight: '600',
+                      color: colors.text
+                    }}>Change</Text>
+                  </View>
                 </TouchableOpacity>,
                 <AppIcon icon={AppIcons.Mic} color={colors.primary} />
               )}
@@ -431,38 +752,66 @@ export default function SettingsScreen() {
             <Text style={{ fontSize: fontSize.medium[textSize], fontWeight: 'bold', marginBottom: 8, color: colors.text }}>
               Text Size
             </Text>
-            <View style={[
-              styles.textSizeExampleContainer,
-              { backgroundColor: colors.surface, borderColor: colors.border }
-            ]}>
+            
+            {/* Sample Text */}
+            <View style={styles.sampleTextContainer}>
               <Text style={{ fontSize: fontSize.medium[pendingTextSize], fontWeight: '500', color: colors.primary }}>
-                This is an example of the current text size.
+                Sample Text
               </Text>
             </View>
-            <View style={styles.textSizePresets}>
+
+            {/* Size Buttons */}
+            <View style={styles.sizeButtonsContainer}>
               <TouchableOpacity
                 onPress={() => setPendingTextSize(0)}
-                style={[styles.textSizePresetButton, { backgroundColor: pendingTextSize === 0 ? colors.primary + '20' : 'transparent' }]}
+                style={[
+                  styles.sizeButton,
+                  { backgroundColor: pendingTextSize === 0 ? colors.primary + '20' : 'transparent' }
+                ]}
                 accessibilityLabel="Set text size to small"
                 accessibilityRole="button"
               >
-                <Text style={{ color: pendingTextSize === 0 ? colors.primary : colors.textSecondary, fontSize: fontSize.small[textSize] }}>S</Text>
+                <Text style={{
+                  color: pendingTextSize === 0 ? colors.primary : colors.textSecondary,
+                  fontWeight: pendingTextSize === 0 ? 'bold' : 'normal',
+                  fontSize: fontSize.small[textSize]
+                }}>
+                  Small
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setPendingTextSize(1)}
-                style={[styles.textSizePresetButton, { backgroundColor: pendingTextSize === 1 ? colors.primary + '20' : 'transparent' }]}
+                style={[
+                  styles.sizeButton,
+                  { backgroundColor: pendingTextSize === 1 ? colors.primary + '20' : 'transparent' }
+                ]}
                 accessibilityLabel="Set text size to medium"
                 accessibilityRole="button"
               >
-                <Text style={{ color: pendingTextSize === 1 ? colors.primary : colors.textSecondary, fontSize: fontSize.small[textSize] }}>M</Text>
+                <Text style={{
+                  color: pendingTextSize === 1 ? colors.primary : colors.textSecondary,
+                  fontWeight: pendingTextSize === 1 ? 'bold' : 'normal',
+                  fontSize: fontSize.small[textSize]
+                }}>
+                  Medium
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setPendingTextSize(2)}
-                style={[styles.textSizePresetButton, { backgroundColor: pendingTextSize === 2 ? colors.primary + '20' : 'transparent' }]}
+                style={[
+                  styles.sizeButton,
+                  { backgroundColor: pendingTextSize === 2 ? colors.primary + '20' : 'transparent' }
+                ]}
                 accessibilityLabel="Set text size to large"
                 accessibilityRole="button"
               >
-                <Text style={{ color: pendingTextSize === 2 ? colors.primary : colors.textSecondary, fontSize: fontSize.small[textSize] }}>L</Text>
+                <Text style={{
+                  color: pendingTextSize === 2 ? colors.primary : colors.textSecondary,
+                  fontWeight: pendingTextSize === 2 ? 'bold' : 'normal',
+                  fontSize: fontSize.small[textSize]
+                }}>
+                  Large
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -473,25 +822,32 @@ export default function SettingsScreen() {
               Icon Size
             </Text>
 
-            {/* Example Icon that changes with slider */}
-            <View style={{ marginBottom: 16 }}>
-              <AppIcon icon={AppIcons.Settings} color={colors.primary} size={pendingIconSize} />
+            {/* Sample Icon */}
+            <View style={styles.sampleIconContainer}>
+              <AppIcon 
+                icon={AppIcons.Settings} 
+                color={colors.primary} 
+                size={pendingIconSize} 
+              />
             </View>
 
-            {/* Labels Row */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 9 , marginRight: 13 }}>
+            {/* Size Buttons */}
+            <View style={styles.sizeButtonsContainer}>
               {ICON_SIZES.map(({ label, value }) => (
                 <TouchableOpacity
                   key={label}
                   onPress={() => setPendingIconSize(value)}
-                  style={{ flex: 1, alignItems: 'center' }}
+                  style={[
+                    styles.sizeButton,
+                    { backgroundColor: pendingIconSize === value ? colors.primary + '20' : 'transparent' }
+                  ]}
                   accessibilityLabel={`Set icon size to ${label}`}
                   accessibilityRole="button"
                 >
                   <Text style={{
                     color: pendingIconSize === value ? colors.primary : colors.textSecondary,
                     fontWeight: pendingIconSize === value ? 'bold' : 'normal',
-                    fontSize: fontSize.small[textSize],
+                    fontSize: fontSize.small[textSize]
                   }}>
                     {label}
                   </Text>
@@ -499,32 +855,19 @@ export default function SettingsScreen() {
               ))}
             </View>
 
-            {/* Slider */}
-            <Slider
-              style={{ width: '100%' }}
-              minimumValue={ICON_SIZES[0].value}
-              maximumValue={ICON_SIZES[ICON_SIZES.length - 1].value}
-              step={1}
-              minimumTrackTintColor={colors.primary}
-              maximumTrackTintColor={colors.border}
-              thumbTintColor={colors.primary}
-              value={pendingIconSize}
-              onValueChange={setPendingIconSize}
-              accessibilityLabel="Adjust icon size slider"
-            />
-
-            {/* Optional: Show current value */}
-            <Text style={{ color: colors.textSecondary, marginTop: 4 }}>{pendingIconSize}px</Text>
-
           </View>
 
           {/* Apply All Accessibility Settings Button */}
-          <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 16 }}>
+          <View style={{ marginTop: 24, alignItems: 'center', paddingHorizontal: 76 }}>
             <AccessibleButton
-              title="Apply All Accessibility Settings"
+              title="Apply"
               onPress={() => {
                 setTextSize(pendingTextSize);
                 setIconSize(pendingIconSize);
+                saveSettings('speechRate', speechRate);
+                saveSettings('speechPitch', speechPitch);
+                TTSService.setSpeechRate(speechRate);
+                TTSService.setSpeechPitch(speechPitch);
                 speakWithCurrentSettings('Accessibility settings applied');
               }}
               style={{ backgroundColor: colors.primary, width: '100%' }}
@@ -721,196 +1064,6 @@ export default function SettingsScreen() {
       </Animated.ScrollView>
     </SafeAreaView>
   );
-}
+};  
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: 40,
-  },
-  profileSection: {
-    marginTop: 16,
-    marginHorizontal: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  profileCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  profileNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileName: {
-    fontWeight: '600',
-    marginRight: 8,
-  },
-  editText: {
-    fontWeight: '500',
-  },
-  editNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    gap: 8,
-  },
-  nameInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontWeight: '500',
-  },
-  saveButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  section: {
-    marginTop: 16,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  sectionTitle: {
-    fontWeight: '600',
-    padding: 16,
-    paddingBottom: 8,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    minHeight: 60,
-  },
-  settingLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  icon: {
-    marginRight: 12,
-  },
-  subIcon: {
-    marginRight: 12,
-    fontWeight: 'bold',
-    width: 24,
-    textAlign: 'center',
-  },
-  label: {
-    fontWeight: '500',
-    flex: 1,
-  },
-  sliderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginLeft: 16,
-    minWidth: 120,
-  },
-  slider: {
-    flex: 1,
-    height: 40,
-    marginHorizontal: 8,
-  },
-  value: {
-    width: 40,
-    textAlign: 'right',
-    fontWeight: '500',
-  },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 44,
-    minWidth: 44,
-  },
-  optionValue: {
-    marginRight: 8,
-    fontWeight: '500',
-  },
-  editApiKeyContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 8,
-  },
-  apiKeyInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    fontWeight: '500',
-    minHeight: 40,
-  },
-  saveApiKeyButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    minHeight: 40,
-  },
-  apiKeyInfo: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 12,
-    margin: 16,
-    marginTop: 0,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 8,
-  },
-  apiKeyInfoText: {
-    flex: 1,
-    lineHeight: 20,
-  },
-  resetText: {
-    fontWeight: '600',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 16,
-  },
-  versionText: {
-    fontWeight: '500',
-  },
-  textSizeControlContainer: {
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  textSizePresets: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: 16,
-  },
-  textSizePresetButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  textSizeExampleContainer: {
-    width: '100%',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 16,
-  },
-});
+export default SettingsScreenComponent;
