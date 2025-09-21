@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
-    "slug": "bolt-expo-nativewind",
-    "version": "1.0.0",
+    "name": "Eye Zone",
+    "slug": "eye-zone",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./src/assets/icons/icon.png",
     "scheme": "myapp",

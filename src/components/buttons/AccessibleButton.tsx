@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { TTSService } from '@/services/TTSService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AccessibleButtonProps {
   title?: string;
@@ -26,10 +28,51 @@ export function AccessibleButton({
   children,
 }: AccessibleButtonProps) {
   const { colors, fontSize } = useTheme();
+  const [voiceSettings, setVoiceSettings] = useState({
+    voiceEnabled: false,
+    speechRate: 0.5,
+    speechPitch: 1.0
+  });
+
+  useEffect(() => {
+    loadVoiceSettings();
+  }, []);
+
+  const loadVoiceSettings = async () => {
+    try {
+      const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+      const speechRate = await AsyncStorage.getItem('speechRate');
+      const speechPitch = await AsyncStorage.getItem('speechPitch');
+      
+      setVoiceSettings({
+        voiceEnabled: voiceEnabled === 'true',
+        speechRate: speechRate ? parseFloat(speechRate) : 0.5,
+        speechPitch: speechPitch ? parseFloat(speechPitch) : 1.0
+      });
+    } catch (error) {
+      console.log('Error loading voice settings:', error);
+    }
+  };
+
+  const speakWithCurrentSettings = (text: string) => {
+    if (voiceSettings.voiceEnabled) {
+      TTSService.speak(text, {
+        rate: voiceSettings.speechRate,
+        pitch: voiceSettings.speechPitch
+      });
+    }
+  };
+
+  const handlePress = () => {
+    if (!disabled) {
+      speakWithCurrentSettings(title || accessibilityLabel);
+      onPress();
+    }
+  };
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       style={[
         styles.button,
         { backgroundColor: colors.primary, opacity: disabled ? 0.6 : 1 },

@@ -5,17 +5,50 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { useOCRScanner } from './_layout';
 import { useFocusEffect } from 'expo-router';
+import { TTSService } from '@/services/TTSService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CameraTabScreen() {
   const [visible, setVisible] = useState(false); // Default to placeholder, not scanner
   const { colors, fontSize } = useTheme();
   const { setCameraActive } = useOCRScanner();
+  const [voiceFeedbackEnabled, setVoiceFeedbackEnabled] = useState(true);
+
+  // Load voice settings
+  useEffect(() => {
+    const loadVoiceSettings = async () => {
+      try {
+        const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+        setVoiceFeedbackEnabled(voiceEnabled === 'true' || voiceEnabled === null); // Default to true
+      } catch (error) {
+        console.error('Error loading voice settings:', error);
+      }
+    };
+    loadVoiceSettings();
+  }, []);
+
+  const speakWithCurrentSettings = async (text: string) => {
+    if (voiceFeedbackEnabled) {
+      try {
+        const speechRate = await AsyncStorage.getItem('speechRate');
+        const speechPitch = await AsyncStorage.getItem('speechPitch');
+        
+        TTSService.setSpeechRate(speechRate ? Number(speechRate) : 0.75);
+        TTSService.setSpeechPitch(speechPitch ? Number(speechPitch) : 1.0);
+        TTSService.speak(text);
+      } catch (error) {
+        console.error('Error with TTS:', error);
+      }
+    }
+  };
 
   const openScanner = () => {
+    speakWithCurrentSettings('Opening OCR scanner');
     setVisible(true);
     setCameraActive(true);
   };
   const closeScanner = () => {
+    speakWithCurrentSettings('Closing OCR scanner');
     setVisible(false);
     setCameraActive(false);
   };

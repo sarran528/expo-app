@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated } from 'react
 import { AppIcon, AppIcons } from '@/components/AppIcon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
+import { TTSService } from '@/services/TTSService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AppHeaderProps {
   title: string;
@@ -15,8 +17,38 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(-300)).current;
+  const [voiceFeedbackEnabled, setVoiceFeedbackEnabled] = useState(true);
+
+  // Load voice settings
+  React.useEffect(() => {
+    const loadVoiceSettings = async () => {
+      try {
+        const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+        setVoiceFeedbackEnabled(voiceEnabled === 'true' || voiceEnabled === null); // Default to true
+      } catch (error) {
+        console.error('Error loading voice settings:', error);
+      }
+    };
+    loadVoiceSettings();
+  }, []);
+
+  const speakWithCurrentSettings = async (text: string) => {
+    if (voiceFeedbackEnabled) {
+      try {
+        const speechRate = await AsyncStorage.getItem('speechRate');
+        const speechPitch = await AsyncStorage.getItem('speechPitch');
+        
+        TTSService.setSpeechRate(speechRate ? Number(speechRate) : 0.75);
+        TTSService.setSpeechPitch(speechPitch ? Number(speechPitch) : 1.0);
+        TTSService.speak(text);
+      } catch (error) {
+        console.error('Error with TTS:', error);
+      }
+    }
+  };
 
   const handleMenuPress = () => {
+    speakWithCurrentSettings('Opening menu');
     setIsMenuOpen(true);
     Animated.timing(slideAnim, {
       toValue: 0,
@@ -26,6 +58,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
   };
 
   const closeMenu = () => {
+    speakWithCurrentSettings('Closing menu');
     Animated.timing(slideAnim, {
       toValue: -300,
       duration: 300,
@@ -36,6 +69,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
   };
 
   const handleSettingsPress = () => {
+    speakWithCurrentSettings('Opening settings');
     closeMenu();
     router.push('/settings');
   };
@@ -85,7 +119,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
           {showMenu && (
             <View style={styles.headerActions}>
               <TouchableOpacity
-                onPress={() => router.push('/settings')}
+                onPress={() => {
+                  speakWithCurrentSettings('Opening settings');
+                  router.push('/settings');
+                }}
                 style={[styles.headerButton, { backgroundColor: colors.background }]}
                 accessible={true}
                 accessibilityLabel="Open settings"
@@ -120,7 +157,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title, showMenu = true, co
           >
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={closeMenu}
+              onPress={() => {
+                speakWithCurrentSettings('Closing menu');
+                closeMenu();
+              }}
               accessible={true}
               accessibilityLabel="Close menu"
               accessibilityRole="button"

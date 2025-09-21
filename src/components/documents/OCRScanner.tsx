@@ -17,6 +17,8 @@ import { AccessibleButton } from '../buttons/AccessibleButton';
 import { OCRService, extractTextFromImage } from '@/services/OCRService';
 import { useRouter } from 'expo-router';
 import { useOCRScanner } from '../../../app/(tabs)/_layout';
+import { TTSService } from '@/services/TTSService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface OCRScannerProps {
   onTextExtracted: (text: string, imageUri: string) => void;
@@ -34,6 +36,35 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
   const { setCameraActive } = useOCRScanner();
+  const [voiceFeedbackEnabled, setVoiceFeedbackEnabled] = useState(true);
+
+  // Load voice settings
+  useEffect(() => {
+    const loadVoiceSettings = async () => {
+      try {
+        const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+        setVoiceFeedbackEnabled(voiceEnabled === 'true' || voiceEnabled === null); // Default to true
+      } catch (error) {
+        console.error('Error loading voice settings:', error);
+      }
+    };
+    loadVoiceSettings();
+  }, []);
+
+  const speakWithCurrentSettings = async (text: string) => {
+    if (voiceFeedbackEnabled) {
+      try {
+        const speechRate = await AsyncStorage.getItem('speechRate');
+        const speechPitch = await AsyncStorage.getItem('speechPitch');
+        
+        TTSService.setSpeechRate(speechRate ? Number(speechRate) : 0.75);
+        TTSService.setSpeechPitch(speechPitch ? Number(speechPitch) : 1.0);
+        TTSService.speak(text);
+      } catch (error) {
+        console.error('Error with TTS:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (visible) {
@@ -47,17 +78,22 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
   if (!visible) return null;
 
   const toggleCameraFacing = () => {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
+    const newFacing = facing === 'back' ? 'front' : 'back';
+    speakWithCurrentSettings(`Switching to ${newFacing} camera`);
+    setFacing(newFacing);
   };
 
   const toggleFlash = () => {
-    setFlash(current => (current === 'off' ? 'on' : 'off'));
+    const newFlash = flash === 'off' ? 'on' : 'off';
+    speakWithCurrentSettings(`Flash ${newFlash}`);
+    setFlash(newFlash);
   };
 
   const takePicture = async () => {
     if (!cameraRef.current) return;
 
     try {
+      speakWithCurrentSettings('Taking picture');
       setProcessingStatus('Capturing image...');
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.5, // Lowered from 0.8 for efficiency
@@ -70,12 +106,14 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
       }
     } catch (error) {
       console.error('Error taking picture:', error);
+      speakWithCurrentSettings('Failed to capture image');
       Alert.alert('Error', 'Failed to capture image. Please try again.');
     }
   };
 
   const pickImageFromGallery = async () => {
     try {
+      speakWithCurrentSettings('Opening image gallery');
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.5, // Lowered from 0.8 for efficiency
@@ -88,6 +126,7 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
       }
     } catch (error) {
       console.error('Error picking image:', error);
+      speakWithCurrentSettings('Failed to pick image from gallery');
       Alert.alert('Error', 'Failed to pick image from gallery.');
     }
   };
@@ -108,9 +147,11 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
       const extractedText = await extractTextFromImageLocal(manipResult.uri);
 
       if (extractedText.trim()) {
+        speakWithCurrentSettings('Text extracted successfully');
         onTextExtracted(extractedText, manipResult.uri);
         router.push({ pathname: '/text-reader', params: { text: extractedText } });
       } else {
+        speakWithCurrentSettings('No text found in image');
         Alert.alert('No Text Found', 'No readable text was detected in this image. Please try with a clearer image.');
       }
     } catch (error) {
@@ -144,12 +185,14 @@ export function OCRScanner({ onTextExtracted, onClose, visible }: OCRScannerProp
   };
 
   const resetScanner = () => {
+    speakWithCurrentSettings('Resetting scanner');
     setCapturedImage(null);
     setIsProcessing(false);
     setProcessingStatus('');
   };
 
   const retryOCR = () => {
+    speakWithCurrentSettings('Processing OCR');
     if (capturedImage) {
       processImageForOCR(capturedImage);
     }

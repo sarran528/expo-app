@@ -41,6 +41,40 @@ function PDFScreen() {
   const { setPdfOpen } = usePDFViewer();
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [voiceSettings, setVoiceSettings] = useState({
+    voiceEnabled: false,
+    speechRate: 0.5,
+    speechPitch: 1.0
+  });
+
+  useEffect(() => {
+    loadVoiceSettings();
+  }, []);
+
+  const loadVoiceSettings = async () => {
+    try {
+      const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+      const speechRate = await AsyncStorage.getItem('speechRate');
+      const speechPitch = await AsyncStorage.getItem('speechPitch');
+      
+      setVoiceSettings({
+        voiceEnabled: voiceEnabled === 'true',
+        speechRate: speechRate ? parseFloat(speechRate) : 0.5,
+        speechPitch: speechPitch ? parseFloat(speechPitch) : 1.0
+      });
+    } catch (error) {
+      console.log('Error loading voice settings:', error);
+    }
+  };
+
+  const speakWithCurrentSettings = (text: string) => {
+    if (voiceSettings.voiceEnabled) {
+      TTSService.speak(text, {
+        rate: voiceSettings.speechRate,
+        pitch: voiceSettings.speechPitch
+      });
+    }
+  };
 
   // Fix: Only load PDFs from AsyncStorage on mount, not on theme change.
   useEffect(() => {
@@ -87,11 +121,13 @@ function PDFScreen() {
   );
 
   const handlePDFSelect = (pdf: PDFDocument) => {
+    speakWithCurrentSettings(`Opening PDF ${pdf.name}`);
     setSelectedPDF(pdf);
   };
 
   const pickPDF = async () => {
     try {
+      speakWithCurrentSettings('Selecting PDF document');
       const result = await DocumentPicker.getDocumentAsync({
         type: 'application/pdf',
         copyToCacheDirectory: true,
@@ -300,7 +336,10 @@ function PDFScreen() {
           />
           <View style={styles.emptyState}>
             <TouchableOpacity
-              onPress={pickPDF}
+              onPress={() => {
+                speakWithCurrentSettings('Importing PDF document');
+                pickPDF();
+              }}
               accessibilityLabel="Import PDF document"
               style={{
                 width: 72,

@@ -20,6 +20,7 @@ import { AccessibleButton } from '@/components/buttons/AccessibleButton';
 import { ImageModal } from '@/components/modals/ImageModal';
 import { OCRService } from '@/services/OCRService';
 import { TTSService } from '@/services/TTSService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ImageItem {
   id: string;
@@ -38,6 +39,35 @@ export default function GalleryScreen() {
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [voiceFeedbackEnabled, setVoiceFeedbackEnabled] = useState(true);
+
+  // Load voice settings
+  useEffect(() => {
+    const loadVoiceSettings = async () => {
+      try {
+        const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+        setVoiceFeedbackEnabled(voiceEnabled === 'true' || voiceEnabled === null); // Default to true
+      } catch (error) {
+        console.error('Error loading voice settings:', error);
+      }
+    };
+    loadVoiceSettings();
+  }, []);
+
+  const speakWithCurrentSettings = async (text: string) => {
+    if (voiceFeedbackEnabled) {
+      try {
+        const speechRate = await AsyncStorage.getItem('speechRate');
+        const speechPitch = await AsyncStorage.getItem('speechPitch');
+        
+        TTSService.setSpeechRate(speechRate ? Number(speechRate) : 0.75);
+        TTSService.setSpeechPitch(speechPitch ? Number(speechPitch) : 1.0);
+        TTSService.speak(text);
+      } catch (error) {
+        console.error('Error with TTS:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     loadImages();
@@ -74,6 +104,7 @@ export default function GalleryScreen() {
   };
 
   const handleImagePress = (image: ImageItem) => {
+    speakWithCurrentSettings(`Opening image ${image.filename}`);
     setSelectedImage(image);
   };
 
@@ -195,7 +226,10 @@ export default function GalleryScreen() {
         <Text style={{ color: colors.text, fontWeight: '600', fontSize: fontSize.medium[1] }}>
           {getSortLabel(sortBy, sortOrder) || ' '}
         </Text>
-        <TouchableOpacity onPress={() => setSortModalVisible(true)} style={{ padding: 4 }} accessibilityLabel="Sort Images">
+        <TouchableOpacity onPress={() => {
+          speakWithCurrentSettings('Opening sort options');
+          setSortModalVisible(true);
+        }} style={{ padding: 4 }} accessibilityLabel="Sort Images">
           <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Sort</Text>
         </TouchableOpacity>
       </View>
@@ -246,13 +280,17 @@ export default function GalleryScreen() {
         animationType="fade"
         onRequestClose={() => setSortModalVisible(false)}
       >
-        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => setSortModalVisible(false)}>
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => {
+          speakWithCurrentSettings('Closing sort options');
+          setSortModalVisible(false);
+        }}>
           <View style={{ width: 220, borderRadius: 12, borderWidth: 1, paddingVertical: 8, alignItems: 'stretch', elevation: 4, backgroundColor: colors.surface, borderColor: colors.border }}>
             {['name', 'date', 'size'].map((by) => (
               <TouchableOpacity
                 key={by}
                 style={{ paddingVertical: 14, paddingHorizontal: 20 }}
                 onPress={() => {
+                  speakWithCurrentSettings(`Sorting by ${by}`);
                   handleSort(by as 'name' | 'date' | 'size');
                   setSortModalVisible(false);
                 }}
@@ -265,6 +303,7 @@ export default function GalleryScreen() {
             <TouchableOpacity
               style={{ paddingVertical: 14, paddingHorizontal: 20 }}
               onPress={() => {
+                speakWithCurrentSettings('Inverting sort order');
                 setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
                 setSortModalVisible(false);
               }}

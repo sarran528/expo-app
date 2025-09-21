@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 import { useTheme } from '@/contexts/ThemeContext';
 import { AppIcon, AppIcons } from '@/components/AppIcon';
 import * as Sharing from 'expo-sharing';
+import { TTSService } from '@/services/TTSService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface PDFDocument {
   uri: string;
@@ -49,6 +51,40 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [modalPDF, setModalPDF] = useState<PDFDocument | null>(null);
   const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [voiceSettings, setVoiceSettings] = useState({
+    voiceEnabled: false,
+    speechRate: 0.5,
+    speechPitch: 1.0
+  });
+
+  useEffect(() => {
+    loadVoiceSettings();
+  }, []);
+
+  const loadVoiceSettings = async () => {
+    try {
+      const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+      const speechRate = await AsyncStorage.getItem('speechRate');
+      const speechPitch = await AsyncStorage.getItem('speechPitch');
+      
+      setVoiceSettings({
+        voiceEnabled: voiceEnabled === 'true',
+        speechRate: speechRate ? parseFloat(speechRate) : 0.5,
+        speechPitch: speechPitch ? parseFloat(speechPitch) : 1.0
+      });
+    } catch (error) {
+      console.log('Error loading voice settings:', error);
+    }
+  };
+
+  const speakWithCurrentSettings = (text: string) => {
+    if (voiceSettings.voiceEnabled) {
+      TTSService.speak(text, {
+        rate: voiceSettings.speechRate,
+        pitch: voiceSettings.speechPitch
+      });
+    }
+  };
 
   const safePdfs = Array.isArray(pdfs) ? pdfs : [];
 
@@ -149,7 +185,10 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
         <Text style={[styles.title, { color: colors.text, fontSize: fontSize.medium[1] }]}>
           {getSortLabel(sortBy, sortOrder) || ' '}
         </Text>
-        <TouchableOpacity onPress={() => setSortModalVisible(true)} style={{ padding: 4 }} accessibilityLabel="Sort PDFs">
+        <TouchableOpacity onPress={() => {
+          speakWithCurrentSettings('Opening sort options');
+          setSortModalVisible(true);
+        }} style={{ padding: 4 }} accessibilityLabel="Sort PDFs">
           <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Sort</Text>
         </TouchableOpacity>
       </View>
@@ -164,7 +203,10 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
                   borderColor: selectedPDF?.uri === item.uri ? colors.primary : 'transparent',
                 },
               ]}
-              onPress={() => onSelect(item)}
+              onPress={() => {
+                speakWithCurrentSettings(`Selecting PDF ${item.name}`);
+                onSelect(item);
+              }}
               accessibilityLabel={`Select PDF: ${item.name}`}
             >
               <View style={styles.row}>
@@ -187,7 +229,10 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
                 </View>
                 <TouchableOpacity
                   style={styles.actionContainer}
-                  onPress={() => showOptions(item)}
+                  onPress={() => {
+                    speakWithCurrentSettings(`More options for ${item.name}`);
+                    showOptions(item);
+                  }}
                   accessibilityLabel={`More options for ${item.name}`}
                 >
                   <AppIcon icon={AppIcons.MoreVertical} color={colors.textSecondary} />
@@ -202,15 +247,27 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
       {/* Android Modal */}
       {Platform.OS !== 'ios' && (
         <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
-          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setModalVisible(false)}>
+          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => {
+            speakWithCurrentSettings('Closing PDF options');
+            setModalVisible(false);
+          }}>
             <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <TouchableOpacity style={styles.modalOption} onPress={() => handleModalAction('open')}>
+              <TouchableOpacity style={styles.modalOption} onPress={() => {
+                speakWithCurrentSettings('Opening PDF');
+                handleModalAction('open');
+              }}>
                 <Text style={[styles.modalOptionText, { color: colors.text }]}>Open</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalOption} onPress={() => handleModalAction('share')}>
+              <TouchableOpacity style={styles.modalOption} onPress={() => {
+                speakWithCurrentSettings('Sharing PDF');
+                handleModalAction('share');
+              }}>
                 <Text style={[styles.modalOptionText, { color: colors.text }]}>Share</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalOption} onPress={() => handleModalAction('delete')}>
+              <TouchableOpacity style={styles.modalOption} onPress={() => {
+                speakWithCurrentSettings('Delete PDF confirmation');
+                handleModalAction('delete');
+              }}>
                 <Text style={[styles.modalOptionText, { color: colors.error }]}>Delete</Text>
               </TouchableOpacity>
             </View>
@@ -220,13 +277,17 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
 
       {/* Sort Modal */}
       <Modal visible={sortModalVisible} transparent animationType="fade" onRequestClose={() => setSortModalVisible(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setSortModalVisible(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => {
+          speakWithCurrentSettings('Closing sort options');
+          setSortModalVisible(false);
+        }}>
           <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {['name', 'date', 'size'].map((by) => (
               <TouchableOpacity
                 key={by}
                 style={styles.modalOption}
                 onPress={() => {
+                  speakWithCurrentSettings(`Sorting by ${by}`);
                   onSort && onSort(by as 'name' | 'date' | 'size');
                   setSortModalVisible(false);
                 }}
@@ -239,6 +300,7 @@ export const PDFListSection: React.FC<PDFListSectionProps> = ({
             <TouchableOpacity
               style={styles.modalOption}
               onPress={() => {
+                speakWithCurrentSettings('Inverting sort order');
                 onInvertSort && onInvertSort();
                 setSortModalVisible(false);
               }}

@@ -536,7 +536,10 @@ const SettingsScreenComponent = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, backgroundColor: colors.surface }}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            speakWithCurrentSettings('Going back');
+            router.back();
+          }}
           style={{ width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' }}
           accessibilityLabel="Go back"
           accessibilityRole="button"

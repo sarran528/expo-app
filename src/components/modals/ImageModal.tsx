@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -15,6 +15,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { AccessibleButton } from '../buttons/AccessibleButton';
 import { LoadingModal } from './LoadingModal';
 import ImageCropPicker from 'react-native-image-crop-picker';
+import { TTSService } from '@/services/TTSService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ImageItem {
   id: string;
@@ -40,25 +42,66 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
   const [editVisible, setEditVisible] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [croppedUri, setCroppedUri] = useState<string | null>(null);
+  const [voiceSettings, setVoiceSettings] = useState({
+    voiceEnabled: false,
+    speechRate: 0.5,
+    speechPitch: 1.0
+  });
+
+  useEffect(() => {
+    loadVoiceSettings();
+  }, []);
+
+  const loadVoiceSettings = async () => {
+    try {
+      const voiceEnabled = await AsyncStorage.getItem('voiceEnabled');
+      const speechRate = await AsyncStorage.getItem('speechRate');
+      const speechPitch = await AsyncStorage.getItem('speechPitch');
+      
+      setVoiceSettings({
+        voiceEnabled: voiceEnabled === 'true',
+        speechRate: speechRate ? parseFloat(speechRate) : 0.5,
+        speechPitch: speechPitch ? parseFloat(speechPitch) : 1.0
+      });
+    } catch (error) {
+      console.log('Error loading voice settings:', error);
+    }
+  };
+
+  const speakWithCurrentSettings = (text: string) => {
+    if (voiceSettings.voiceEnabled) {
+      TTSService.speak(text, {
+        rate: voiceSettings.speechRate,
+        pitch: voiceSettings.speechPitch
+      });
+    }
+  };
 
   const handleShare = () => {
+    speakWithCurrentSettings('Sharing image');
     if (onShare) onShare();
   };
 
   const handleDelete = () => {
     if (onDelete) {
+      speakWithCurrentSettings('Delete image confirmation');
       Alert.alert(
         'Delete Image',
         'Are you sure you want to delete this image?',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Delete', style: 'destructive', onPress: () => onDelete() },
+          { text: 'Delete', style: 'destructive', onPress: () => {
+              speakWithCurrentSettings('Image deleted');
+              onDelete();
+            }
+          },
         ]
       );
     }
   };
 
   const handleOCRPress = async () => {
+    speakWithCurrentSettings('Extracting text from image');
     setIsLoading(true);
     try {
       await onOCR();
@@ -69,6 +112,7 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
 
   const handleCrop = async () => {
     try {
+      speakWithCurrentSettings('Opening crop tool');
       setIsLoading(true);
       const result = await ImageCropPicker.openCropper({
         path: croppedUri || image.uri,
@@ -77,11 +121,15 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
         cropperToolbarTitle: 'Crop Image',
       });
       if (result && result.path) {
+        speakWithCurrentSettings('Image cropped successfully');
         setCroppedUri(result.path);
       }
     } catch (error: any) {
       if (error?.message !== 'User cancelled image selection') {
+        speakWithCurrentSettings('Crop failed');
         Alert.alert('Crop Error', 'Failed to crop image');
+      } else {
+        speakWithCurrentSettings('Crop cancelled');
       }
     } finally {
       setIsLoading(false);
@@ -107,7 +155,10 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
             {image.filename}
           </Text>
           <TouchableOpacity
-            onPress={onClose}
+            onPress={() => {
+              speakWithCurrentSettings('Closing image viewer');
+              onClose();
+            }}
             style={[styles.closeButton, { backgroundColor: colors.background }]}
             accessible={true}
             accessibilityLabel="Close image viewer"
@@ -126,13 +177,20 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
               accessibilityLabel={`Image: ${image.filename}`}
             />
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 24 }}>
-              <TouchableOpacity onPress={handleCrop} style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any} accessibilityLabel="Crop image">
+              <TouchableOpacity onPress={() => {
+                speakWithCurrentSettings('Crop image');
+                handleCrop();
+              }} style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any} accessibilityLabel="Crop image">
                 <AppIcon icon={AppIcons.Crop} color={colors.text} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setRotation((r) => (r + 90) % 360)} style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any} accessibilityLabel="Rotate image">
+              <TouchableOpacity onPress={() => {
+                speakWithCurrentSettings('Rotating image');
+                setRotation((r) => (r + 90) % 360);
+              }} style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any} accessibilityLabel="Rotate image">
                 <AppIcon icon={AppIcons.RotateCcw} color={colors.text} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {
+                speakWithCurrentSettings('Delete image confirmation');
                 setEditVisible(false);
                 if (onDelete) {
                   Alert.alert(
@@ -140,14 +198,21 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
                     'Are you sure you want to delete this image?',
                     [
                       { text: 'Cancel', style: 'cancel' },
-                      { text: 'Delete', style: 'destructive', onPress: () => onDelete() },
+                      { text: 'Delete', style: 'destructive', onPress: () => {
+                          speakWithCurrentSettings('Image deleted');
+                          onDelete();
+                        }
+                      },
                     ]
                   );
                 }
               }} style={[styles.actionButton, { backgroundColor: colors.error }] as any} accessibilityLabel="Delete image">
                 <AppIcon icon={AppIcons.Trash2} color={colors.onError} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setEditVisible(false)} style={[styles.actionButton, { backgroundColor: colors.primary }] as any} accessibilityLabel="Close edit">
+              <TouchableOpacity onPress={() => {
+                speakWithCurrentSettings('Closing edit mode');
+                setEditVisible(false);
+              }} style={[styles.actionButton, { backgroundColor: colors.primary }] as any} accessibilityLabel="Close edit">
                 <AppIcon icon={AppIcons.X} color={colors.onPrimary} />
               </TouchableOpacity>
             </View>
@@ -176,7 +241,10 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
                   icon={<AppIcon icon={AppIcons.Eye} color={colors.onPrimary} strokeWidth={2.5} />}
                 />
                 <AccessibleButton
-                  onPress={() => setEditVisible(true)}
+                  onPress={() => {
+                    speakWithCurrentSettings('Opening edit mode');
+                    setEditVisible(true);
+                  }}
                   style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any}
                   accessibilityLabel="Edit image"
                   icon={<AppIcon icon={AppIcons.Pencil} color={colors.text} strokeWidth={2.5} />}
@@ -188,7 +256,10 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
                   icon={<AppIcon icon={AppIcons.Send} color={colors.text} strokeWidth={2.5} />}
                 />
                 <AccessibleButton
-                  onPress={() => setDetailsVisible(true)}
+                  onPress={() => {
+                    speakWithCurrentSettings('Opening image details');
+                    setDetailsVisible(true);
+                  }}
                   style={[styles.actionButton, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }] as any}
                   accessibilityLabel="Show image details"
                   icon={<AppIcon icon={AppIcons.Info} color={colors.text} strokeWidth={2.5} />}
@@ -202,7 +273,10 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
                     Extracted Text
                   </Text>
                   <AccessibleButton
-                    onPress={() => onTTS(image.ocrText!)}
+                    onPress={() => {
+                      speakWithCurrentSettings('Reading extracted text');
+                      onTTS(image.ocrText!);
+                    }}
                     style={[styles.ttsButton, { backgroundColor: colors.primary }] as any}
                     accessibilityLabel="Read extracted text aloud"
                     icon={<AppIcon icon={AppIcons.Volume2} color={colors.onPrimary} strokeWidth={2.5} />}
@@ -232,13 +306,19 @@ export function ImageModal({ image, onClose, onOCR, onTTS, onDelete, onShare }: 
           animationType="fade"
           onRequestClose={() => setDetailsVisible(false)}
         >
-          <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => setDetailsVisible(false)}>
+          <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center' }} activeOpacity={1} onPress={() => {
+            speakWithCurrentSettings('Closing image details');
+            setDetailsVisible(false);
+          }}>
             <View style={{ width: 300, borderRadius: 12, borderWidth: 1, padding: 20, backgroundColor: colors.surface, borderColor: colors.border }}>
               <Text style={{ fontWeight: 'bold', fontSize: fontSize.large, color: colors.text, marginBottom: 8 }}>Image Details</Text>
               <Text style={{ color: colors.text, marginBottom: 4 }}>Name: {image.filename}</Text>
               <Text style={{ color: colors.text, marginBottom: 4 }}>Date: {new Date(image.creationTime * 1000).toLocaleString()}</Text>
               <Text style={{ color: colors.text, marginBottom: 4 }}>URI: {image.uri}</Text>
-              <TouchableOpacity onPress={() => setDetailsVisible(false)} style={{ marginTop: 12, alignSelf: 'flex-end' }}>
+              <TouchableOpacity onPress={() => {
+                speakWithCurrentSettings('Closing details');
+                setDetailsVisible(false);
+              }} style={{ marginTop: 12, alignSelf: 'flex-end' }}>
                 <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Close</Text>
               </TouchableOpacity>
             </View>
